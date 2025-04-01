@@ -1,0 +1,52 @@
+[gd_scene load_steps=4 format=3 uid="uid://dtl0qakeex18t"]
+
+[ext_resource type="Texture2D" uid="uid://d2gglfvk4njvo" path="res://assets/home-background.png" id="1_kkhhk"]
+[ext_resource type="FontFile" uid="uid://srhwck83r11m" path="res://assets/fonts/antiquity-print/antiquity-print.ttf" id="2_8h62q"]
+[ext_resource type="Script" uid="uid://bpm8ai01hcwgn" path="res://game/scripts/home.gd" id="3_8h62q"]
+
+[node name="Home" type="Node2D"]
+script = ExtResource("3_8h62q")
+
+[node name="Background" type="Sprite2D" parent="."]
+modulate = Color(0.658824, 0.713726, 0.803922, 1)
+texture_filter = 1
+position = Vector2(640, 384.5)
+scale = Vector2(1.25, 0.998698)
+texture = ExtResource("1_kkhhk")
+region_rect = Rect2(0, 0, 1280, 720)
+
+[node name="Label" type="Label" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 318.0
+offset_top = 337.0
+offset_right = 963.0
+offset_bottom = 431.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_shadow_color = Color(0.59906, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0.423185, 9.08468e-07, 3.1285e-07, 1)
+theme_override_constants/outline_size = 10
+theme_override_constants/shadow_outline_size = 15
+theme_override_fonts/font = ExtResource("2_8h62q")
+theme_override_font_sizes/font_size = 64
+text = "Dungeon Master"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PlayButton" type="Button" parent="."]
+offset_left = 577.0
+offset_top = 445.0
+offset_right = 688.0
+offset_bottom = 515.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_outline_color = Color(0.423529, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_fonts/font = ExtResource("2_8h62q")
+theme_override_font_sizes/font_size = 42
+text = "play"
+
+[connection signal="pressed" from="PlayButton" to="." method="_on_play_pressed"]
