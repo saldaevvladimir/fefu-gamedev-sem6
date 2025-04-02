@@ -358,3 +358,14 @@ autoplay = "Idle"
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(-1, -4)
 shape = SubResource("CapsuleShape2D_ukil2")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(1.15, 1.15)
+process_callback = 0
+position_smoothing_enabled = true
+drag_horizontal_enabled = true
+drag_vertical_enabled = true
+drag_left_margin = 0.1
+drag_top_margin = 0.1
+drag_right_margin = 0.1
+drag_bottom_margin = 0.1

@@ -7,7 +7,6 @@ const SWORD1_DMG = 30
 const SWORD2_DMG = 50
 const BOW_DMG = 20
 
-
 func _physics_process(delta):
 	# movement
 	velocity = Vector2.ZERO
