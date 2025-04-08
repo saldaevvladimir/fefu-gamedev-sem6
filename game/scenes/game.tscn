@@ -1,10 +1,15 @@
-[gd_scene load_steps=10 format=3 uid="uid://h5q1y0ns8rb7"]
+[gd_scene load_steps=15 format=3 uid="uid://h5q1y0ns8rb7"]
 
 [ext_resource type="Texture2D" uid="uid://cx4o24m75yqxm" path="res://assets/2D Pixel Dungeon Asset Pack/character and tileset/Dungeon_Tileset.png" id="1_dt1u1"]
 [ext_resource type="Texture2D" uid="uid://cq4nl8cnm5r3p" path="res://assets/2D Pixel Dungeon Asset Pack/character and tileset/Dungeon_Character.png" id="2_ykdcs"]
 [ext_resource type="Texture2D" uid="uid://d2yycyyfjx1nw" path="res://assets/2D Pixel Dungeon Asset Pack/character and tileset/Dungeon_Character_2.png" id="3_gy5jl"]
 [ext_resource type="PackedScene" uid="uid://bsxmfn7etnto5" path="res://game/scenes/player.tscn" id="4_wowgv"]
 [ext_resource type="PackedScene" uid="uid://clqo430um1lci" path="res://game/scenes/mobs/skeleton.tscn" id="5_ykdcs"]
+[ext_resource type="FontFile" uid="uid://srhwck83r11m" path="res://assets/fonts/antiquity-print/antiquity-print.ttf" id="6_l4dfk"]
+[ext_resource type="Script" uid="uid://4wlg4t41bw2f" path="res://game/scripts/ui/hp_label.gd" id="7_og0sj"]
+[ext_resource type="Script" uid="uid://b0mi654pu03jn" path="res://game/scripts/ui/arrows_label.gd" id="8_4osd1"]
+[ext_resource type="Script" uid="uid://cnl6b1qfqwq8y" path="res://game/scripts/ui/simple_keys_label.gd" id="9_ru4j2"]
+[ext_resource type="Script" uid="uid://6sydb8sh677x" path="res://game/scripts/ui/mystery_keys_label.gd" id="10_bbyh4"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_7aouk"]
 texture = ExtResource("1_dt1u1")
@@ -207,3 +212,46 @@ position = Vector2(803, 369)
 
 [node name="skeleton" parent="Mobs" instance=ExtResource("5_ykdcs")]
 position = Vector2(388, 355)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="HP_Label" type="Label" parent="CanvasLayer"]
+offset_left = 69.0
+offset_top = 70.0
+offset_right = 251.0
+offset_bottom = 118.0
+theme_override_colors/font_shadow_color = Color(0.423185, 5.65536e-07, 9.62615e-08, 1)
+theme_override_colors/font_outline_color = Color(0.120383, 7.06168e-07, 3.73013e-07, 1)
+theme_override_constants/outline_size = 11
+theme_override_constants/shadow_outline_size = 10
+theme_override_fonts/font = ExtResource("6_l4dfk")
+theme_override_font_sizes/font_size = 32
+text = "100 HP"
+script = ExtResource("7_og0sj")
+
+[node name="Arrows_Label" type="Label" parent="CanvasLayer"]
+offset_left = 71.0
+offset_top = 124.0
+offset_right = 198.0
+offset_bottom = 163.0
+theme_override_font_sizes/font_size = 28
+text = "Arrows: 0"
+script = ExtResource("8_4osd1")
+
+[node name="SimpleKeys_Label" type="Label" parent="CanvasLayer"]
+offset_left = 69.0
+offset_top = 168.0
+offset_right = 258.0
+offset_bottom = 207.0
+theme_override_font_sizes/font_size = 28
+text = "simple keys: 0"
+script = ExtResource("9_ru4j2")
+
+[node name="MysteryKeys_Label" type="Label" parent="CanvasLayer"]
+offset_left = 69.0
+offset_top = 210.0
+offset_right = 278.0
+offset_bottom = 249.0
+theme_override_font_sizes/font_size = 28
+text = "mystery keys: 0"
+script = ExtResource("10_bbyh4")

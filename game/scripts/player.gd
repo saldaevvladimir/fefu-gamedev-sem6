@@ -2,7 +2,18 @@ extends CharacterBody2D
 
 var SPEED = 250
 var health = 100
-const BOW_DMG = 20
+var arrows_count = 0
+var simple_keys_count = 0
+var mystery_keys_count = 0
+
+@onready var anim = $AnimatedSprite2D
+@onready var melee_shape = $Area2D/CollisionShape2D
+
+var is_attacking = false
+var active_weapon = null
+
+# for melee attacks
+var bodies_in_melee_range = []
 
 const WEAPONS = {
 	"Sword1": {
@@ -21,15 +32,6 @@ const WEAPONS = {
 		"type": "ranged"
 	},
 }
-
-@onready var anim = $AnimatedSprite2D
-@onready var melee_shape = $Area2D/CollisionShape2D
-
-var is_attacking = false
-var active_weapon = null
-
-# for melee attacks
-var bodies_in_melee_range = []
 
 func _physics_process(delta):
 	if is_attacking or !is_alive():
