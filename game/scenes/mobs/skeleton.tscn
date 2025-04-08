@@ -1,4 +1,4 @@
-[gd_scene load_steps=58 format=3 uid="uid://clqo430um1lci"]
+[gd_scene load_steps=57 format=3 uid="uid://clqo430um1lci"]
 
 [ext_resource type="Script" uid="uid://c3ncgs87su2he" path="res://game/scripts/mobs/skeleton.gd" id="1_3tc0i"]
 [ext_resource type="Texture2D" uid="uid://dacy8nx3x4aep" path="res://assets/Enemy_Animations_Set/enemies-skeleton1_attack.png" id="1_jllgr"]
@@ -371,9 +371,6 @@ animations = [{
 [sub_resource type="CircleShape2D" id="CircleShape2D_3tc0i"]
 radius = 270.0
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_7ygeb"]
-radius = 270.0
-
 [node name="Skeleton" type="CharacterBody2D"]
 script = ExtResource("1_3tc0i")
 
@@ -385,9 +382,8 @@ shape = SubResource("CapsuleShape2D_jllgr")
 position = Vector2(4, -19)
 scale = Vector2(3.5, 3.5)
 sprite_frames = SubResource("SpriteFrames_xwmgk")
-animation = &"Attack"
+animation = &"Walk"
 autoplay = "Idle"
-frame = 6
 
 [node name="Detector" type="Area2D" parent="."]
 visible = false
@@ -395,10 +391,6 @@ visible = false
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Detector"]
 shape = SubResource("CircleShape2D_3tc0i")
 
-[node name="Death" type="Area2D" parent="."]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Death"]
-shape = SubResource("CircleShape2D_7ygeb")
-
+[connection signal="animation_finished" from="AnimatedSprite2D" to="." method="_on_animated_sprite_2d_animation_finished"]
 [connection signal="body_entered" from="Detector" to="." method="_on_detector_body_entered"]
 [connection signal="body_exited" from="Detector" to="." method="_on_detector_body_exited"]
