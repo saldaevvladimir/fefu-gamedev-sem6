@@ -1,0 +1,75 @@
+[gd_scene load_steps=8 format=3 uid="uid://b3s5lh6rgltcj"]
+
+[ext_resource type="Script" uid="uid://dibdt6gywu7ym" path="res://game/scripts/peaks.gd" id="1_33k2s"]
+[ext_resource type="Texture2D" uid="uid://dofy3s215u680" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/peaks/peaks_1.png" id="1_jx8ff"]
+[ext_resource type="Texture2D" uid="uid://bs1xvukw720a6" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/peaks/peaks_2.png" id="2_33k2s"]
+[ext_resource type="Texture2D" uid="uid://cs150vc8gci8i" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/peaks/peaks_4.png" id="3_5ok1n"]
+[ext_resource type="Texture2D" uid="uid://b6v0w1gw3jal2" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/peaks/peaks_3.png" id="4_xw1u6"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_klx5j"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_jx8ff")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_33k2s")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_5ok1n")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_xw1u6")
+}],
+"loop": false,
+"name": &"Hide",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_xw1u6")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_5ok1n")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_33k2s")
+}, {
+"duration": 1.0,
+"texture": ExtResource("1_jx8ff")
+}],
+"loop": false,
+"name": &"Show",
+"speed": 3.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jx8ff"]
+size = Vector2(12, 12)
+
+[node name="Peaks" type="Node2D"]
+script = ExtResource("1_33k2s")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_klx5j")
+animation = &"Hide"
+autoplay = "Hide"
+frame = 3
+frame_progress = 1.0
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("RectangleShape2D_jx8ff")
+
+[node name="Show_Timer" type="Timer" parent="."]
+wait_time = 0.8
+
+[node name="DMG_Timer" type="Timer" parent="."]
+wait_time = 0.8
+
+[connection signal="animation_changed" from="AnimatedSprite2D" to="." method="_on_animated_sprite_2d_animation_changed"]
+[connection signal="animation_finished" from="AnimatedSprite2D" to="." method="_on_animated_sprite_2d_animation_finished"]
+[connection signal="body_entered" from="Area2D" to="." method="_on_area_2d_body_entered"]
+[connection signal="body_exited" from="Area2D" to="." method="_on_area_2d_body_exited"]
+[connection signal="timeout" from="Show_Timer" to="." method="_on_show_timer_timeout"]
+[connection signal="timeout" from="DMG_Timer" to="." method="_on_dmg_timer_timeout"]

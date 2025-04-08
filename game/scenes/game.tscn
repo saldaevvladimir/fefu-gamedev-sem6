@@ -1,9 +1,10 @@
-[gd_scene load_steps=15 format=3 uid="uid://h5q1y0ns8rb7"]
+[gd_scene load_steps=16 format=3 uid="uid://h5q1y0ns8rb7"]
 
 [ext_resource type="Texture2D" uid="uid://cx4o24m75yqxm" path="res://assets/2D Pixel Dungeon Asset Pack/character and tileset/Dungeon_Tileset.png" id="1_dt1u1"]
 [ext_resource type="Texture2D" uid="uid://cq4nl8cnm5r3p" path="res://assets/2D Pixel Dungeon Asset Pack/character and tileset/Dungeon_Character.png" id="2_ykdcs"]
 [ext_resource type="Texture2D" uid="uid://d2yycyyfjx1nw" path="res://assets/2D Pixel Dungeon Asset Pack/character and tileset/Dungeon_Character_2.png" id="3_gy5jl"]
 [ext_resource type="PackedScene" uid="uid://bsxmfn7etnto5" path="res://game/scenes/player.tscn" id="4_wowgv"]
+[ext_resource type="PackedScene" uid="uid://b3s5lh6rgltcj" path="res://game/scenes/peaks.tscn" id="5_bbyh4"]
 [ext_resource type="PackedScene" uid="uid://clqo430um1lci" path="res://game/scenes/mobs/skeleton.tscn" id="5_ykdcs"]
 [ext_resource type="FontFile" uid="uid://srhwck83r11m" path="res://assets/fonts/antiquity-print/antiquity-print.ttf" id="6_l4dfk"]
 [ext_resource type="Script" uid="uid://4wlg4t41bw2f" path="res://game/scripts/ui/hp_label.gd" id="7_og0sj"]
@@ -206,12 +207,19 @@ layer_1/tile_data = PackedInt32Array(0, 1, 0, 65536, 1, 1, 131072, 1, 2, 196608,
 [node name="Player" type="Node2D" parent="."]
 
 [node name="player" parent="Player" instance=ExtResource("4_wowgv")]
+z_index = 1
 position = Vector2(803, 369)
 
 [node name="Mobs" type="Node2D" parent="."]
 
 [node name="skeleton" parent="Mobs" instance=ExtResource("5_ykdcs")]
 position = Vector2(388, 355)
+
+[node name="Traps" type="Node2D" parent="."]
+
+[node name="Peaks" parent="Traps" instance=ExtResource("5_bbyh4")]
+position = Vector2(803, 97)
+scale = Vector2(4, 4)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
