@@ -74,6 +74,5 @@ func attack():
 	target.take_damage(ATTACK_DMG)
 
 func _on_animated_sprite_2d_animation_finished() -> void:
-	print('animation finished')
 	is_attacking = false
 	is_taking_damage = false
