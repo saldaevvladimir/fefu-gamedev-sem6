@@ -38,7 +38,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		anim.play("Idle")
 		
-	if target != null and !is_chasing:
+	if target != null and !is_chasing and target.is_alive():
 		attack()
 
 func _on_detector_body_entered(body: Node2D) -> void:
@@ -76,3 +76,8 @@ func attack():
 func _on_animated_sprite_2d_animation_finished() -> void:
 	is_attacking = false
 	is_taking_damage = false
+	if !is_alive():
+		destroy()
+		
+func destroy():
+	queue_free()
