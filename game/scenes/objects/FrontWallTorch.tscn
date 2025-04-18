@@ -1,0 +1,35 @@
+[gd_scene load_steps=6 format=3 uid="uid://c2rwx0q0f0cnt"]
+
+[ext_resource type="Texture2D" uid="uid://cs3uhq3iqiqt8" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/torch/torch_1.png" id="1_0egd5"]
+[ext_resource type="Texture2D" uid="uid://bthsi3ahokw1t" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/torch/torch_2.png" id="2_r7ag8"]
+[ext_resource type="Texture2D" uid="uid://bltqxrkredtnr" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/torch/torch_3.png" id="3_25ls4"]
+[ext_resource type="Texture2D" uid="uid://cht1a020lghu1" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/torch/torch_4.png" id="4_i73yq"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_7dql7"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_0egd5")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_r7ag8")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_25ls4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_i73yq")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}]
+
+[node name="FrontWallTorch" type="Node2D"]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+scale = Vector2(2.5, 2.5)
+sprite_frames = SubResource("SpriteFrames_7dql7")
+animation = &"idle"
+autoplay = "idle"
+frame_progress = 0.758778
