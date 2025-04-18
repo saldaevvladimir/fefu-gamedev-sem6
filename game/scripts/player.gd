@@ -97,7 +97,7 @@ func _physics_process(delta):
 		anim.play("Idle")
 	
 	for weapon in ["Sword1", "Sword2", "Bow"]:
-		if Input.is_action_just_pressed(weapon):
+		if Input.is_action_pressed(weapon):
 			attack(weapon)
 
 func is_alive():
@@ -127,9 +127,9 @@ func attack(weapon):
 		
 	is_attacking = true
 	active_weapon = weapon
-	anim.play(get_weapon_animation(weapon))
 	
 	if WEAPONS[weapon]["type"] == "melee":
+		anim.play(get_weapon_animation(weapon))
 		for body in bodies_in_melee_range:
 			if body.has_method("take_damage"):
 				print(body.name)
@@ -137,6 +137,7 @@ func attack(weapon):
 	elif WEAPONS[weapon]["type"] == "ranged":
 		var ammo_type = get_ammo_by_weapon(weapon)
 		if use_object(ammo_type):
+			anim.play(get_weapon_animation(weapon))
 			var ammo = ammo_type.instantiate()
 			ammo.global_transform = $Node2D/Marker2D.global_transform
 			ammo.set_shooter(self)

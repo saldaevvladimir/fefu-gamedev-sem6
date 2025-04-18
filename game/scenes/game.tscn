@@ -1,16 +1,21 @@
-[gd_scene load_steps=16 format=3 uid="uid://h5q1y0ns8rb7"]
+[gd_scene load_steps=21 format=3 uid="uid://h5q1y0ns8rb7"]
 
 [ext_resource type="Texture2D" uid="uid://cx4o24m75yqxm" path="res://assets/2D Pixel Dungeon Asset Pack/character and tileset/Dungeon_Tileset.png" id="1_dt1u1"]
 [ext_resource type="Texture2D" uid="uid://cq4nl8cnm5r3p" path="res://assets/2D Pixel Dungeon Asset Pack/character and tileset/Dungeon_Character.png" id="2_ykdcs"]
 [ext_resource type="Texture2D" uid="uid://d2yycyyfjx1nw" path="res://assets/2D Pixel Dungeon Asset Pack/character and tileset/Dungeon_Character_2.png" id="3_gy5jl"]
 [ext_resource type="PackedScene" uid="uid://bsxmfn7etnto5" path="res://game/scenes/player.tscn" id="4_wowgv"]
-[ext_resource type="PackedScene" uid="uid://b3s5lh6rgltcj" path="res://game/scenes/peaks.tscn" id="5_bbyh4"]
+[ext_resource type="PackedScene" uid="uid://u35ngntfa64q" path="res://game/scenes/objects/Chest1.tscn" id="5_0xtou"]
+[ext_resource type="PackedScene" uid="uid://b3s5lh6rgltcj" path="res://game/scenes/objects/Peaks.tscn" id="5_bbyh4"]
 [ext_resource type="PackedScene" uid="uid://clqo430um1lci" path="res://game/scenes/mobs/skeleton.tscn" id="5_ykdcs"]
+[ext_resource type="PackedScene" uid="uid://dbau2hycq068a" path="res://game/scenes/objects/Chest2.tscn" id="6_dyrm1"]
 [ext_resource type="FontFile" uid="uid://srhwck83r11m" path="res://assets/fonts/antiquity-print/antiquity-print.ttf" id="6_l4dfk"]
 [ext_resource type="Script" uid="uid://4wlg4t41bw2f" path="res://game/scripts/ui/hp_label.gd" id="7_og0sj"]
 [ext_resource type="Script" uid="uid://b0mi654pu03jn" path="res://game/scripts/ui/arrows_label.gd" id="8_4osd1"]
 [ext_resource type="Script" uid="uid://cnl6b1qfqwq8y" path="res://game/scripts/ui/simple_keys_label.gd" id="9_ru4j2"]
 [ext_resource type="Script" uid="uid://6sydb8sh677x" path="res://game/scripts/ui/mystery_keys_label.gd" id="10_bbyh4"]
+[ext_resource type="PackedScene" uid="uid://borflmn3wlwp0" path="res://game/scenes/objects/GroundTorch.tscn" id="12_ngn8n"]
+[ext_resource type="PackedScene" uid="uid://c3ocxhvi7cqky" path="res://game/scenes/objects/SideWallTorch.tscn" id="13_2nnov"]
+[ext_resource type="PackedScene" uid="uid://c2rwx0q0f0cnt" path="res://game/scenes/objects/FrontWallTorch.tscn" id="16_r514v"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_7aouk"]
 texture = ExtResource("1_dt1u1")
@@ -210,6 +215,12 @@ layer_1/tile_data = PackedInt32Array(0, 1, 0, 65536, 1, 1, 131072, 1, 2, 196608,
 z_index = 1
 position = Vector2(803, 369)
 
+[node name="Chest1" parent="Player" instance=ExtResource("5_0xtou")]
+position = Vector2(666, 257)
+
+[node name="Chest2" parent="Player" instance=ExtResource("6_dyrm1")]
+position = Vector2(717, 256)
+
 [node name="Mobs" type="Node2D" parent="."]
 
 [node name="skeleton" parent="Mobs" instance=ExtResource("5_ykdcs")]
@@ -263,3 +274,12 @@ offset_bottom = 249.0
 theme_override_font_sizes/font_size = 28
 text = "mystery keys: 0"
 script = ExtResource("10_bbyh4")
+
+[node name="GroundTorch" parent="." instance=ExtResource("12_ngn8n")]
+position = Vector2(989, 266)
+
+[node name="SideWallTorch" parent="." instance=ExtResource("13_2nnov")]
+position = Vector2(83, 295)
+
+[node name="FrontWallTorch" parent="." instance=ExtResource("16_r514v")]
+position = Vector2(672, 37)

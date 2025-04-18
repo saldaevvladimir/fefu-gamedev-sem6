@@ -1,0 +1,55 @@
+[gd_scene load_steps=10 format=3 uid="uid://dbau2hycq068a"]
+
+[ext_resource type="Texture2D" uid="uid://dqkw6ho3x5m5u" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/mini_chest/mini_chest_1.png" id="1_wibdi"]
+[ext_resource type="Texture2D" uid="uid://d15mrxe7j866e" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/mini_chest/mini_chest_2.png" id="2_8sxdl"]
+[ext_resource type="Texture2D" uid="uid://covbm3opstgcm" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/mini_chest/mini_chest_3.png" id="3_hua7m"]
+[ext_resource type="Texture2D" uid="uid://c8lx3cmrr7eps" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/mini_chest/mini_chest_4.png" id="4_6jvec"]
+[ext_resource type="Texture2D" uid="uid://dvsqlvtbcheiu" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/mini_chest/mini_chest_open_1.png" id="5_0u4su"]
+[ext_resource type="Texture2D" uid="uid://dwg85oqk2krpf" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/mini_chest/mini_chest_open_2.png" id="6_p3bea"]
+[ext_resource type="Texture2D" uid="uid://cdsjtqva8xrai" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/mini_chest/mini_chest_open_3.png" id="7_ojxoh"]
+[ext_resource type="Texture2D" uid="uid://lflk7wcscpwc" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/mini_chest/mini_chest_open_4.png" id="8_ix740"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_nbm2p"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_wibdi")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_8sxdl")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_hua7m")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_6jvec")
+}],
+"loop": true,
+"name": &"Idle",
+"speed": 4.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("5_0u4su")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_p3bea")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_ojxoh")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_ix740")
+}],
+"loop": false,
+"name": &"Open",
+"speed": 4.0
+}]
+
+[node name="Chest2" type="Node2D"]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+scale = Vector2(2.5, 2.5)
+sprite_frames = SubResource("SpriteFrames_nbm2p")
+animation = &"Idle"
+autoplay = "Idle"
