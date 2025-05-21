@@ -21,6 +21,8 @@ var last_move_direction = Vector2(-1, 0)
 # for melee attacks
 var bodies_in_melee_range = []
 
+var interactive_objects = []
+
 const WEAPONS = {
 	"Sword1": {
 		"animation": "SwordAttack1",
@@ -49,6 +51,17 @@ var OBJECTS_COUNT = {
 	"SimpleKey": 0,
 	"MysteryKey": 0,
 }
+
+const EXISTING_OBJECTS = [
+	"Chest1",
+	"Chest2",
+	"SimpleKey",
+	"MysteryKey",
+	arrow,
+	"Bonus",
+	"Gold",
+	"Shards"
+]
 
 func _on_ready() -> void:
 	var shader = Shader.new()
@@ -99,6 +112,10 @@ func _physics_process(delta):
 	for weapon in ["Sword1", "Sword2", "Bow"]:
 		if Input.is_action_pressed(weapon):
 			attack(weapon)
+			
+	if Input.is_action_pressed("Chest"):
+		open_chest()
+		print("idi nahui")
 
 func is_alive():
 	return health > 0
@@ -144,7 +161,31 @@ func attack(weapon):
 			ammo.set_direction(last_move_direction)
 			ammo.set_damage(WEAPONS[weapon]["damage"])
 			add_child(ammo)
-		
+
+func open_chest():
+	var nearest_chest = null
+	var min_distance = INF
+	
+	for body in interactive_objects:
+		if body.is_in_group("chests"):
+			var distance = body.global_position.distance_to(global_position)
+			if distance < min_distance:
+				min_distance = distance
+				nearest_chest = body
+	
+	if nearest_chest:
+		print("hehehaha")
+		var key_type = "SimpleKey" if nearest_chest.name == "Chest1" else "MysteryKey"
+		if use_object(key_type):
+			nearest_chest.open()
+			nearest_chest.connect("chest_opened", self, "_on_chest_opened")
+
+func _on_chest_opened(objects):
+	for obj in objects:
+		var obj_name = obj.keys()[0]
+		var obj_count = obj.values()[0]
+		receive_object(obj_name, obj_count)
+
 func has_object(obj):
 	if obj in OBJECTS_COUNT:
 		return OBJECTS_COUNT[obj] > 0
@@ -156,14 +197,21 @@ func use_object(obj):
 	print("used object: ", obj)
 	OBJECTS_COUNT[obj] -= 1
 	return true
+	
+func receive_object(obj, count):
+	if obj in OBJECTS_COUNT and count >= 1:
+		OBJECTS_COUNT[obj] += count
+		print("Received object: ", obj, " - ", count)
 
 func _on_area_2d_body_entered(body: Node2D) -> void:
 	if body not in bodies_in_melee_range and body.name != "player":
 		bodies_in_melee_range.append(body)
+		print("body entered: ", body)
 		
 func _on_area_2d_body_exited(body: Node2D) -> void:
 	if body in bodies_in_melee_range:
 		bodies_in_melee_range.erase(body)
+		print("body exit: ", body)
 
 func take_damage(damage: int = 0):
 	if !is_alive():
@@ -187,3 +235,18 @@ func _on_hit_timer_timeout() -> void:
 	
 func destroy():
 	queue_free()
+	
+func handle_object_entry(obj):
+	if obj.name in EXISTING_OBJECTS:
+		print("entry object: ", obj.name)
+		
+func handle_object_exit(obj):
+	if obj.name in EXISTING_OBJECTS:
+		print("exit object: ", obj.name)
+
+func _on_area_2d_area_entered(area: Area2D) -> void:
+	# all OBJECTS must have Area2D as root node
+	handle_object_entry(area)
+
+func _on_area_2d_area_exited(area: Area2D) -> void:
+	handle_object_exit(area)
