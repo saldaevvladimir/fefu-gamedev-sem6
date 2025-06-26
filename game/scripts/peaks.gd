@@ -32,11 +32,11 @@ func show_peaks():
 	anim.play("Show")
 
 func _on_area_2d_body_entered(body: Node2D) -> void:
-	if body.name == "player":
+	if body.name == "Player":
 		target = body
 
 func _on_area_2d_body_exited(body: Node2D) -> void:
-	if body.name == "player":
+	if body.name == "Player":
 		target = null
 
 func _on_dmg_timer_timeout() -> void:

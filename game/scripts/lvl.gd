@@ -50,6 +50,7 @@ func generate_world():
 		TILE_SIZE * (start_pos[0] * CELL_SIZE + CELL_SIZE / 2),
 		TILE_SIZE * (start_pos[1] * CELL_SIZE + CELL_SIZE / 2)
 	)
+	player.z_index = 1
 	
 	print_maze(maze)
 	print_path(maze, longest_path)
