@@ -113,6 +113,8 @@ func is_alive():
 func _on_animated_sprite_2d_animation_finished() -> void:
 	is_attacking = false
 	active_weapon = null
+	if anim.animation == "Death":
+		get_tree().change_scene_to_file("res://game/scenes/home.tscn")
 	
 func get_weapon_damage(weapon):
 	if weapon != null:

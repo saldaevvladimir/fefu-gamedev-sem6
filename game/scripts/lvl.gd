@@ -9,7 +9,7 @@ const WORLD_HEIGHT = 20 # in cells
 const CELL_SIZE = 3     # 4x4 tiles in 1 cell
 const TILE_SIZE = 64    # in pixels
 const TRAPS_RATE = 0.05
-const MOB_RATE = 0.03 
+const MOB_RATE = 0.3
 # tileset id
 var source_id = 1
 # atlases for specific tiles

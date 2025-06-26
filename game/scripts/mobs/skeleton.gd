@@ -15,7 +15,7 @@ func _physics_process(delta: float) -> void:
 	if is_attacking or is_taking_damage or !is_alive():
 		return
 
-	var player = get_node_or_null("../../Player/Player")
+	var player = get_node_or_null("../Player/Player")
 	if player == null:
 		return
 
