@@ -39,9 +39,11 @@ func set_range(rng):
 	range = rng
 
 func _on_body_entered(body: Node2D) -> void:
-	if body != shooter and body.name in POSSIBLE_TARGETS:
+	print("arrow through ", body.name)
+	if body != shooter:
 		if damage:
-			body.take_damage(damage)
+			if body.has_method("take_damage"):
+				body.take_damage(damage)
 		destroy()
 
 func destroy():

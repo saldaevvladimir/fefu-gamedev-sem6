@@ -2,20 +2,16 @@ extends Node2D
 
 @onready var tile_map = $TileMap
 @onready var player = $Player/Player
-
 const Peak = preload("res://game/scenes/objects/Peaks.tscn")
-
+const Skeleton = preload("res://game/scenes/mobs/Skeleton.tscn")
 const WORLD_WIDTH = 30  # in cells
 const WORLD_HEIGHT = 20 # in cells
-
 const CELL_SIZE = 3     # 4x4 tiles in 1 cell
 const TILE_SIZE = 64    # in pixels
-
 const TRAPS_RATE = 0.05
-
+const MOB_RATE = 0.03 
 # tileset id
 var source_id = 1
-
 # atlases for specific tiles
 var wall_atlas = Vector2i(8, 7)
 var wall_t_atlas = Vector2i(2, 0)
@@ -26,15 +22,13 @@ var wall_ibr_atlas = Vector2i(5, 4)
 var wall_ibl_atlas = Vector2i(0, 4)
 var wall_otl_atlas = Vector2i(0, 5)
 var wall_otr_atlas = Vector2i(5, 5)
-
 var ground_atlas = Vector2i(9, 7)
-
 var map_width = -1
 var map_height = -1
 
 func _ready() -> void:
 	generate_world()
-	
+
 func set_map_size(width, height):
 	map_width = width
 	map_height = height
@@ -44,32 +38,33 @@ func generate_world():
 	var start_pos = get_random_boundary_cell(maze)
 	var longest_path = find_longest_path(maze, start_pos)
 	var exit_pos = longest_path[-1]
-	
+
 	generate_map(maze)
 	player.position = Vector2(
 		TILE_SIZE * (start_pos[0] * CELL_SIZE + CELL_SIZE / 2),
 		TILE_SIZE * (start_pos[1] * CELL_SIZE + CELL_SIZE / 2)
 	)
 	player.z_index = 1
-	
+
 	print_maze(maze)
 	print_path(maze, longest_path)
-	
+
 func generate_map(maze):
 	var w = maze[0].size()
 	var h = maze.size()
-	
+
 	for x in range(w):
 		for y in range(h):
 			var offset_x = x * CELL_SIZE
 			var offset_y = y * CELL_SIZE
-			
+
 			for i in range(CELL_SIZE):
 				for j in range(CELL_SIZE):
 					var atlas = ground_atlas if maze[y][x] else wall_atlas
 					tile_map.set_cell(0, Vector2(offset_x + i, offset_y + j), source_id, atlas)
-					
+
 	place_traps(maze)
+	place_mobs(maze)
 
 func place_traps(maze):
 	var w = maze[0].size()
@@ -79,8 +74,38 @@ func place_traps(maze):
 		for y in range(1, h - 1):
 			if maze[y][x] and randf() < TRAPS_RATE:
 				print("Potential trap at: ", x, y)
-				if has_opposite_wall_neighbors(maze, x, y):
+				if has_opposite_wall_neighbors(maze, x, y) and not is_too_close_to_player(x, y):
 					place_traps_in_line(maze, x, y)
+
+func place_mobs(maze):
+	var w = maze[0].size()
+	var h = maze.size()
+	print("Placing mobs in a maze of size: ", w, "x", h)
+	for x in range(1, w - 1):
+		for y in range(1, h - 1):
+			if maze[y][x] and randf() < MOB_RATE and not is_too_close_to_player(x, y):
+				place_mob(maze, x, y)
+
+func place_mob(maze, x, y):
+	var cell_x = x * CELL_SIZE
+	var cell_y = y * CELL_SIZE
+	var pos_x = randi() % CELL_SIZE
+	var pos_y = randi() % CELL_SIZE
+
+	var mob = Skeleton.instantiate()
+	mob.position = Vector2(
+		(cell_x + pos_x + 0.5) * TILE_SIZE,
+		(cell_y + pos_y + 0.5) * TILE_SIZE
+	)
+	mob.scale = Vector2(1, 1)
+	add_child(mob)
+	print("Added mob at position: ", mob.position)
+
+func is_too_close_to_player(x, y):
+	var player_cell_x = int(player.position.x / (TILE_SIZE * CELL_SIZE))
+	var player_cell_y = int(player.position.y / (TILE_SIZE * CELL_SIZE))
+	var distance = sqrt((x - player_cell_x) ** 2 + (y - player_cell_y) ** 2)
+	return distance < 2
 
 func has_opposite_wall_neighbors(maze, x, y):
 	var w = maze[0].size()
@@ -96,14 +121,13 @@ func place_traps_in_line(maze, x, y):
 	var h = maze.size()
 	var has_left_and_right_walls = (x > 0 and not maze[y][x - 1]) and (x < w - 1 and not maze[y][x + 1])
 	var has_top_and_bottom_walls = (y > 0 and not maze[y - 1][x]) and (y < h - 1 and not maze[y + 1][x])
-
 	if has_left_and_right_walls:
 		for i in range(CELL_SIZE):
 			var trap_x = x * CELL_SIZE + i
 			var trap = Peak.instantiate()
 			trap.position = Vector2(
-				(trap_x + 0.5) * TILE_SIZE,  
-				(y * CELL_SIZE + CELL_SIZE / 2 + 0.5) * TILE_SIZE 
+				(trap_x + 0.5) * TILE_SIZE,
+				(y * CELL_SIZE + CELL_SIZE / 2 + 0.5) * TILE_SIZE
 			)
 			trap.scale = Vector2(4, 4)
 			add_child(trap)
@@ -113,13 +137,12 @@ func place_traps_in_line(maze, x, y):
 			var trap_y = y * CELL_SIZE + i
 			var trap = Peak.instantiate()
 			trap.position = Vector2(
-				(x * CELL_SIZE + CELL_SIZE / 2 + 0.5) * TILE_SIZE,  
-				(trap_y + 0.5) * TILE_SIZE 
+				(x * CELL_SIZE + CELL_SIZE / 2 + 0.5) * TILE_SIZE,
+				(trap_y + 0.5) * TILE_SIZE
 			)
 			trap.scale = Vector2(4, 4)
 			add_child(trap)
 			print("Added trap at vertical position: ", trap.position)
-
 
 func print_path(maze, path):
 	print("\nСамый длинный путь:")
@@ -131,7 +154,7 @@ func print_path(maze, path):
 			else:
 				row += '*' if [x, y] in path else ' '
 		print(row)
-		
+
 func print_maze(maze):
 	print("\nЛабиринт:")
 	for y in range(maze.size()):
@@ -139,7 +162,7 @@ func print_maze(maze):
 		for x in range(maze[y].size()):
 			row += "▓" if not maze[y][x] else " "
 		print(row)
-		
+
 func get_random_boundary_cell(maze: Array) -> Array:
 	var h: int = maze.size()
 	if h == 0:
@@ -151,14 +174,11 @@ func get_random_boundary_cell(maze: Array) -> Array:
 			boundary_cells.append([x, 1])
 		if h >= 4 and maze[h - 2][x]:
 			boundary_cells.append([x, h - 2])
-
 	for y in range(1, h - 1):
 		if maze[y][1]:
 			boundary_cells.append([1, y])
-
 		if w >= 4 and maze[y][w - 2]:
 			boundary_cells.append([w - 2, y])
-
 	var unique_boundary_cells: Array = []
 	for cell in boundary_cells:
 		if cell not in unique_boundary_cells:
@@ -168,29 +188,29 @@ func get_random_boundary_cell(maze: Array) -> Array:
 		return []
 	var random_index = randi() % boundary_cells.size()
 	return boundary_cells[random_index]
-		
+
 func generate_maze(width: int, height: int) -> Array:
 	var w: int = width + (1 if width % 2 == 0 else 0)
 	var h: int = height + (1 if height % 2 == 0 else 0)
-	
+
 	set_map_size(w, h)
-	
+
 	var maze: Array = []
 	for y in range(h):
 		maze.append([])
 		for x in range(w):
 			maze[y].append(false)
-	
+
 	var visited: Array = []
 	for y in range(h):
 		visited.append([])
 		for x in range(w):
 			visited[y].append(false)
-			
+
 	var start_x: int = 1
 	var start_y: int = 1
 	recursive_backtracker(maze, visited, start_x, start_y, w, h)
-	
+
 	for x in range(w):
 		maze[0][x] = false
 		maze[h - 1][x] = false
@@ -198,10 +218,10 @@ func generate_maze(width: int, height: int) -> Array:
 		maze[y][0] = false
 		maze[y][w - 1] = false
 	return maze
-	
+
 func get_unvisited_neighbors(visited: Array, x: int, y: int, w: int, h: int) -> Array:
 	var neighbors: Array = []
-	
+
 	if y > 1 and not visited[y - 2][x]:
 		neighbors.append([x, y - 2])
 	if y < h - 2 and not visited[y + 2][x]:
@@ -211,7 +231,7 @@ func get_unvisited_neighbors(visited: Array, x: int, y: int, w: int, h: int) -> 
 	if x < w - 2 and not visited[y][x + 2]:
 		neighbors.append([x + 2, y])
 	return neighbors
-	
+
 func recursive_backtracker(maze: Array, visited: Array, x: int, y: int, w: int, h: int):
 	visited[y][x] = true
 	maze[y][x] = true
@@ -220,54 +240,49 @@ func recursive_backtracker(maze: Array, visited: Array, x: int, y: int, w: int, 
 		var neighbor: Array = neighbors[randi() % neighbors.size()]
 		var nx: int = neighbor[0]
 		var ny: int = neighbor[1]
-		
+
 		var wall_x = x + (nx - x) / 2
 		var wall_y = y + (ny - y) / 2
 		maze[wall_y][wall_x] = true
 		recursive_backtracker(maze, visited, nx, ny, w, h)
 		neighbors = get_unvisited_neighbors(visited, x, y, w, h)
-		
+
 func find_longest_path(maze: Array, start_pos: Array) -> Array:
 	var w: int = maze[0].size()
 	var h: int = maze.size()
-
 	var start_x = start_pos[0]
 	var start_y = start_pos[1]
 	if not maze[start_y][start_x]:
-		return [] 
-	
+		return []
+
 	var boundary_cells: Array = []
-	
-	for x in range(1, w - 1, 2):  
+
+	for x in range(1, w - 1, 2):
 		if maze[1][x]:
 			boundary_cells.append([x, 1])
 		if h >= 4 and maze[h - 2][x]:
 			boundary_cells.append([x, h - 2])
-	
+
 	for y in range(1, h - 1, 2):
 		if maze[y][1]:
 			boundary_cells.append([1, y])
 		if w >= 4 and maze[y][w - 2]:
 			boundary_cells.append([w - 2, y])
-	
+
 	var unique_boundary_cells: Array = []
 	for cell in boundary_cells:
 		if cell not in unique_boundary_cells:
 			unique_boundary_cells.append(cell)
 	boundary_cells = unique_boundary_cells
-
 	var filtered_boundary_cells: Array = []
 	for cell in boundary_cells:
 		if cell != start_pos:
 			filtered_boundary_cells.append(cell)
 	boundary_cells = filtered_boundary_cells
-
 	if boundary_cells.size() == 0:
 		return []
-
 	var longest_path: Array = []
 	var max_length: int = 0
-
 	for end_pos in boundary_cells:
 		var path = find_path(maze, start_pos, end_pos)
 		if path.size() > max_length:
@@ -275,7 +290,6 @@ func find_longest_path(maze: Array, start_pos: Array) -> Array:
 			longest_path = path
 	return longest_path
 
-	
 func find_path(maze: Array, start_pos: Array, end_pos: Array) -> Array:
 	var w: int = maze[0].size()
 	var h: int = maze.size()
@@ -287,7 +301,7 @@ func find_path(maze: Array, start_pos: Array, end_pos: Array) -> Array:
 	var current_path: Array = []
 	var path = dfs(maze, visited, start_pos[0], start_pos[1], end_pos[0], end_pos[1], current_path)
 	return path
-	
+
 func dfs(maze: Array, visited: Array, x: int, y: int, end_x: int, end_y: int, current_path: Array) -> Array:
 	if x == end_x and y == end_y:
 		var result_path = current_path.duplicate()
@@ -295,7 +309,6 @@ func dfs(maze: Array, visited: Array, x: int, y: int, end_x: int, end_y: int, cu
 		return result_path
 	visited[y][x] = true
 	current_path.append([x, y])
-
 	var directions = [[0, -1], [0, 1], [-1, 0], [1, 0]]
 	for dir in directions:
 		var nx = x + dir[0]
@@ -308,7 +321,6 @@ func dfs(maze: Array, visited: Array, x: int, y: int, end_x: int, end_y: int, cu
 	current_path.pop_back()
 	visited[y][x] = false
 	return []
-	
 
 func _process(delta: float) -> void:
 	pass
