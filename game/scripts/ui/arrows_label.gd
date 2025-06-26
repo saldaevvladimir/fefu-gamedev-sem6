@@ -6,4 +6,4 @@ func _ready() -> void:
 	pass
 
 func _process(delta: float) -> void:
-	text = "arrows: " + str($"../../Player/player".OBJECTS_COUNT[arrow])
+	text = str($"../../Player/Player".OBJECTS_COUNT[arrow])
