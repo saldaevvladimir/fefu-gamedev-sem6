@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://deb5qv5b6dswr"]
+[gd_scene load_steps=10 format=3 uid="uid://deb5qv5b6dswr"]
 
 [ext_resource type="Script" uid="uid://b58ky0thhwbik" path="res://game/scripts/lvl.gd" id="1_k4m84"]
 [ext_resource type="TileSet" uid="uid://t1fh7aod4mne" path="res://game/data/tileset.tres" id="2_5wmg3"]
@@ -6,9 +6,7 @@
 [ext_resource type="FontFile" uid="uid://srhwck83r11m" path="res://assets/fonts/antiquity-print/antiquity-print.ttf" id="4_ld13a"]
 [ext_resource type="Script" uid="uid://4wlg4t41bw2f" path="res://game/scripts/ui/hp_label.gd" id="5_gw81d"]
 [ext_resource type="Script" uid="uid://b0mi654pu03jn" path="res://game/scripts/ui/arrows_label.gd" id="6_saks0"]
-[ext_resource type="Script" uid="uid://cnl6b1qfqwq8y" path="res://game/scripts/ui/simple_keys_label.gd" id="7_0431q"]
 [ext_resource type="Script" uid="uid://6sydb8sh677x" path="res://game/scripts/ui/mystery_keys_label.gd" id="8_5sbgw"]
-[ext_resource type="Texture2D" uid="uid://b2w0bwh0rekq2" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/keys/keys_2_1.png" id="8_saks0"]
 [ext_resource type="Texture2D" uid="uid://cp1pjmmgu21kd" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/keys/keys_1_1.png" id="9_0431q"]
 [ext_resource type="Texture2D" uid="uid://51jsrb4a64wg" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/arrow/Just_arrow.png" id="10_0431q"]
 
@@ -38,43 +36,29 @@ script = ExtResource("5_gw81d")
 
 [node name="Arrows_Label" type="Label" parent="CanvasLayer"]
 offset_left = 37.0
-offset_top = 167.0
+offset_top = 126.0
 offset_right = 164.0
-offset_bottom = 206.0
+offset_bottom = 165.0
 theme_override_font_sizes/font_size = 28
 text = " 0"
 script = ExtResource("6_saks0")
 
-[node name="SimpleKeys_Label" type="Label" parent="CanvasLayer"]
-offset_left = 36.0
-offset_top = 85.0
-offset_right = 104.0
-offset_bottom = 124.0
-theme_override_font_sizes/font_size = 28
-text = " 0"
-script = ExtResource("7_0431q")
-
 [node name="MysteryKeys_Label" type="Label" parent="CanvasLayer"]
 offset_left = 37.0
-offset_top = 126.0
+offset_top = 86.0
 offset_right = 104.0
-offset_bottom = 165.0
+offset_bottom = 125.0
 theme_override_font_sizes/font_size = 28
 text = " 0"
 script = ExtResource("8_5sbgw")
 
-[node name="Key" type="Sprite2D" parent="CanvasLayer"]
-position = Vector2(107, 104)
-scale = Vector2(3, 3)
-texture = ExtResource("8_saks0")
-
 [node name="MysteryKey" type="Sprite2D" parent="CanvasLayer"]
-position = Vector2(106, 144)
+position = Vector2(107, 104)
 scale = Vector2(3, 3)
 texture = ExtResource("9_0431q")
 
 [node name="Arrow" type="Sprite2D" parent="CanvasLayer"]
-position = Vector2(107, 186)
+position = Vector2(107, 145)
 rotation = -1.5708
 scale = Vector2(2, 3)
 texture = ExtResource("10_0431q")

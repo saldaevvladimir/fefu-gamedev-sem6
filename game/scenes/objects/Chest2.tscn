@@ -1,5 +1,6 @@
-[gd_scene load_steps=10 format=3 uid="uid://dbau2hycq068a"]
+[gd_scene load_steps=12 format=3 uid="uid://dbau2hycq068a"]
 
+[ext_resource type="Script" uid="uid://bhp7l3kx8rror" path="res://game/scenes/objects/chest_2.gd" id="1_8sxdl"]
 [ext_resource type="Texture2D" uid="uid://dqkw6ho3x5m5u" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/mini_chest/mini_chest_1.png" id="1_wibdi"]
 [ext_resource type="Texture2D" uid="uid://d15mrxe7j866e" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/mini_chest/mini_chest_2.png" id="2_8sxdl"]
 [ext_resource type="Texture2D" uid="uid://covbm3opstgcm" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/mini_chest/mini_chest_3.png" id="3_hua7m"]
@@ -46,10 +47,18 @@ animations = [{
 "speed": 4.0
 }]
 
-[node name="Chest2" type="Node2D"]
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_8sxdl"]
+radius = 26.0
+height = 54.0
+
+[node name="Chest2" type="Area2D"]
+script = ExtResource("1_8sxdl")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_nbm2p")
 animation = &"Idle"
 autoplay = "Idle"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_8sxdl")
