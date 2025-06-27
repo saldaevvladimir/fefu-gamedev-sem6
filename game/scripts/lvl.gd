@@ -2,23 +2,22 @@ extends Node2D
 
 @onready var tile_map = $TileMap
 @onready var player = $Player/Player
-
 const finish = preload("res://game/scenes/door.tscn")
 const Peak = preload("res://game/scenes/objects/Peaks.tscn")
 const Skeleton = preload("res://game/scenes/mobs/Skeleton.tscn")
 const SimpleChest = preload("res://game/scenes/objects/Chest1.tscn")
-
-const WORLD_WIDTH = 10  # in cells
-const WORLD_HEIGHT = 10 # in cells
-const CELL_SIZE = 3     # CELL_SIZExCELL_SIZE tiles in 1 cell
-const TILE_SIZE = 64    # in pixels
-const TRAPS_RATE = 0.02
+const WORLD_WIDTH = 10
+const WORLD_HEIGHT = 10
+const CELL_SIZE = 3
+const TILE_SIZE = 64
+const TRAPS_RATE = 0.2
 const MOB_RATE = 0.3
-const SIMPLE_CHEST_RATE = 0.01
+const SIMPLE_CHEST_RATE = 0.03
 
-# tileset id
+const SPAWN_RANGE = 10 * TILE_SIZE
+const DESPAWN_RANGE = 11 * TILE_SIZE
+
 var source_id = 1
-# atlases for specific tiles
 var ground_atlas = Vector2i(9, 7)
 var wall_atlas = Vector2i(8, 7)
 var wall_t_atlas = Vector2i(4, 4)
@@ -33,12 +32,9 @@ var wall_itl_atlas = Vector2i(0, 0)
 var wall_itr_atlas = Vector2i(5, 0)
 var wall_otl_atlas = Vector2i(0, 5)
 var wall_otr_atlas = Vector2i(5, 5)
-
 var maze = [[]]
 var map_width = -1
 var map_height = -1
-
-# Новые переменные для хранения позиций объектов
 var chest_positions = []
 var trap_positions = []
 var mob_positions = []
@@ -61,7 +57,6 @@ func generate_world():
 	var start_pos = get_random_boundary_cell()
 	var longest_path = find_longest_path(start_pos)
 	var exit_pos = longest_path[-1]
-	print(exit_pos)
 	generate_map()
 	player.position = Vector2(
 		TILE_SIZE * (start_pos[0] * CELL_SIZE + CELL_SIZE / 2),
@@ -75,8 +70,6 @@ func generate_world():
 	var door = finish.instantiate()
 	door.position = door_position
 	add_child(door)
-	print_maze()
-	print_path(longest_path)
 
 func generate_map():
 	var w = map_width
@@ -94,10 +87,8 @@ func generate_map():
 	place_chests()
 
 func get_wall_atlas(x, y, i, j):
-	# Check if the current tile is on the edge of the cell
 	if i == 0:
 		if j == 0:
-			# Top-left corner
 			if y > 0 and x > 0 and maze[y - 1][x] and maze[y][x - 1]:
 				return wall_otl_atlas
 			elif y > 0 and maze[y - 1][x]:
@@ -109,7 +100,6 @@ func get_wall_atlas(x, y, i, j):
 			else:
 				return wall_atlas
 		elif j == CELL_SIZE - 1:
-			# Bottom-left corner
 			if y < map_height - 1 and x > 0 and maze[y + 1][x] and maze[y][x - 1]:
 				return wall_obl_atlas
 			elif y < map_height - 1 and maze[y + 1][x]:
@@ -121,14 +111,12 @@ func get_wall_atlas(x, y, i, j):
 			else:
 				return wall_atlas
 		else:
-			# Left edge
 			if x > 0 and maze[y][x - 1]:
 				return wall_l_atlas
 			else:
 				return wall_atlas
 	elif i == CELL_SIZE - 1:
 		if j == 0:
-			# Top-right corner
 			if y > 0 and x < map_width - 1 and maze[y - 1][x] and maze[y][x + 1]:
 				return wall_otr_atlas
 			elif y > 0 and maze[y - 1][x]:
@@ -140,7 +128,6 @@ func get_wall_atlas(x, y, i, j):
 			else:
 				return wall_atlas
 		elif j == CELL_SIZE - 1:
-			# Bottom-right corner
 			if y < map_height - 1 and x < map_width - 1 and maze[y + 1][x] and maze[y][x + 1]:
 				return wall_obr_atlas
 			elif y < map_height - 1 and maze[y + 1][x]:
@@ -152,32 +139,27 @@ func get_wall_atlas(x, y, i, j):
 			else:
 				return wall_atlas
 		else:
-			# Right edge
 			if x < map_width - 1 and maze[y][x + 1]:
 				return wall_r_atlas
 			else:
 				return wall_atlas
 	else:
 		if j == 0:
-			# Top edge
 			if y > 0 and maze[y - 1][x]:
 				return wall_t_atlas
 			else:
 				return wall_atlas
 		elif j == CELL_SIZE - 1:
-			# Bottom edge
 			if y < map_height - 1 and maze[y + 1][x]:
 				return wall_b_atlas
 			else:
 				return wall_atlas
 		else:
-			# Inner tile
 			return wall_atlas
 
 func place_chests():
 	var w = maze[0].size()
 	var h = maze.size()
-	print("Placing chests in a maze of size: ", w, "x", h)
 	chest_positions = []
 	for x in range(1, w - 1):
 		for y in range(1, h - 1):
@@ -193,17 +175,14 @@ func place_chests():
 						(cell_y + pos_y + 0.5) * TILE_SIZE
 					)
 					chest_positions.append(chest_pos)
-					print("Added chest position: ", chest_pos)
 
 func place_traps():
 	var w = maze[0].size()
 	var h = maze.size()
-	print("Placing traps in a maze of size: ", w, "x", h)
 	trap_positions = []
 	for x in range(1, w - 1):
 		for y in range(1, h - 1):
 			if maze[y][x] and randf() < TRAPS_RATE:
-				print("Potential trap at: ", x, y)
 				if has_opposite_wall_neighbors(x, y) and not is_too_close_to_player(x, y):
 					var cell_x = x * CELL_SIZE
 					var cell_y = y * CELL_SIZE
@@ -217,7 +196,6 @@ func place_traps():
 								(y * CELL_SIZE + CELL_SIZE / 2 + 0.5) * TILE_SIZE
 							)
 							trap_positions.append(trap_pos)
-							print("Added trap position (horizontal): ", trap_pos)
 					elif has_top_and_bottom_walls:
 						for i in range(CELL_SIZE):
 							var trap_y = y * CELL_SIZE + i
@@ -226,12 +204,10 @@ func place_traps():
 								(trap_y + 0.5) * TILE_SIZE
 							)
 							trap_positions.append(trap_pos)
-							print("Added trap position (vertical): ", trap_pos)
 
 func place_mobs():
 	var w = maze[0].size()
 	var h = maze.size()
-	print("Placing mobs in a maze of size: ", w, "x", h)
 	mob_positions = []
 	for x in range(1, w - 1):
 		for y in range(1, h - 1):
@@ -245,7 +221,6 @@ func place_mobs():
 					(cell_y + pos_y + 0.5) * TILE_SIZE
 				)
 				mob_positions.append(mob_pos)
-				print("Added mob position: ", mob_pos)
 
 func is_next_to_wall(x, y):
 	var w = maze[0].size()
@@ -272,9 +247,7 @@ func has_opposite_wall_neighbors(x, y):
 	var h = maze.size()
 	var has_left_and_right_walls = (x > 0 and not maze[y][x - 1]) and (x < w - 1 and not maze[y][x + 1])
 	var has_top_and_bottom_walls = (y > 0 and not maze[y - 1][x]) and (y < h - 1 and not maze[y + 1][x])
-	var result = has_left_and_right_walls or has_top_and_bottom_walls
-	print("Checking opposite wall neighbors at: ", x, y, "Result: ", result)
-	return result
+	return has_left_and_right_walls or has_top_and_bottom_walls
 
 func spawn_object_at_position(position: Vector2, object_type: String) -> Node2D:
 	var object: Node2D
@@ -284,8 +257,6 @@ func spawn_object_at_position(position: Vector2, object_type: String) -> Node2D:
 			object.add_to_group("chest")
 			if object.has_signal("opened"):
 				object.connect("opened", Callable(self, "_on_chest_opened"))
-			else:
-				print("Warning: Chest object has no 'opened' signal")
 		"trap":
 			object = Peak.instantiate()
 			object.scale = Vector2(4, 4)
@@ -295,8 +266,6 @@ func spawn_object_at_position(position: Vector2, object_type: String) -> Node2D:
 			object.add_to_group("mob")
 			if object.has_signal("died"):
 				object.connect("died", Callable(self, "_on_mob_died"))
-			else:
-				print("Warning: Mob object has no 'died' signal")
 	object.position = position
 	add_child(object)
 	match object_type:
@@ -308,8 +277,9 @@ func spawn_object_at_position(position: Vector2, object_type: String) -> Node2D:
 			active_mobs[position] = object
 	return object
 
-
 func despawn_object(object: Node2D, position: Vector2, object_type: String):
+	if not is_instance_valid(object):
+		return
 	match object_type:
 		"chest":
 			if active_chests.has(position):
@@ -320,6 +290,9 @@ func despawn_object(object: Node2D, position: Vector2, object_type: String):
 		"mob":
 			if active_mobs.has(position):
 				active_mobs.erase(position)
+			if mob_positions.has(position):
+				mob_positions.erase(position)
+			mob_positions.append(object.position)
 	object.queue_free()
 
 func check_and_spawn_objects():
@@ -327,17 +300,17 @@ func check_and_spawn_objects():
 	for pos in chest_positions:
 		if not active_chests.has(pos):
 			var distance = player_pos.distance_to(pos)
-			if distance <= 3 * TILE_SIZE:
+			if distance <= SPAWN_RANGE:
 				var chest = spawn_object_at_position(pos, "chest")
 	for pos in trap_positions:
 		if not active_traps.has(pos):
 			var distance = player_pos.distance_to(pos)
-			if distance <= 3 * TILE_SIZE:
+			if distance <= SPAWN_RANGE:
 				var trap = spawn_object_at_position(pos, "trap")
 	for pos in mob_positions:
 		if not active_mobs.has(pos):
 			var distance = player_pos.distance_to(pos)
-			if distance <= 3 * TILE_SIZE:
+			if distance <= SPAWN_RANGE:
 				var mob = spawn_object_at_position(pos, "mob")
 
 func check_and_despawn_objects():
@@ -345,31 +318,32 @@ func check_and_despawn_objects():
 	var to_remove_chests = []
 	for pos in active_chests.keys():
 		var distance = player_pos.distance_to(pos)
-		if distance > 5 * TILE_SIZE:
+		if distance > DESPAWN_RANGE:
 			var chest = active_chests[pos]
-			despawn_object(chest, pos, "chest")
+			if is_instance_valid(chest):
+				despawn_object(chest, pos, "chest")
 			to_remove_chests.append(pos)
 	for pos in to_remove_chests:
 		if active_chests.has(pos):
 			active_chests.erase(pos)
-
 	var to_remove_traps = []
 	for pos in active_traps.keys():
 		var distance = player_pos.distance_to(pos)
-		if distance > 5 * TILE_SIZE:
+		if distance > DESPAWN_RANGE:
 			var trap = active_traps[pos]
-			despawn_object(trap, pos, "trap")
+			if is_instance_valid(trap):
+				despawn_object(trap, pos, "trap")
 			to_remove_traps.append(pos)
 	for pos in to_remove_traps:
 		if active_traps.has(pos):
 			active_traps.erase(pos)
-
 	var to_remove_mobs = []
 	for pos in active_mobs.keys():
 		var distance = player_pos.distance_to(pos)
-		if distance > 5 * TILE_SIZE:
+		if distance > DESPAWN_RANGE:
 			var mob = active_mobs[pos]
-			despawn_object(mob, pos, "mob")
+			if is_instance_valid(mob):
+				despawn_object(mob, pos, "mob")
 			to_remove_mobs.append(pos)
 	for pos in to_remove_mobs:
 		if active_mobs.has(pos):
@@ -384,6 +358,8 @@ func _on_chest_opened(chest):
 	chest.queue_free()
 
 func _on_mob_died(mob):
+	if not is_instance_valid(mob):
+		return
 	var pos = mob.position
 	if mob_positions.has(pos):
 		mob_positions.erase(pos)

@@ -1,7 +1,7 @@
 extends CharacterBody2D
 
 const SPEED = 100
-const ATTACK_RNG = 50
+const ATTACK_RNG = 60
 const ATTACK_DMG = 10
 var health = 100
 var is_chasing = false
