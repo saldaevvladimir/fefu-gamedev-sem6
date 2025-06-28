@@ -8,4 +8,4 @@ func _ready() -> void:
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
-	text = "mystery keys: " + str($"../../Player/player".mystery_keys_count)
+	text = "mystery keys: " + str($"../../Player/player".OBJECTS_COUNT["MysteryKey"])

@@ -5,16 +5,18 @@ const HIT_DURATION = 0.2
 
 var SPEED = 250
 var health = 100
-var arrows_count = 0
-var simple_keys_count = 0
-var mystery_keys_count = 0
 
 @onready var anim = $AnimatedSprite2D
 @onready var melee_shape = $Area2D/CollisionShape2D
 @onready var hit_timer = $Hit_Timer
 
+const arrow = preload("res://game/scenes/objects/Arrow.tscn")
+
 var is_attacking = false
 var active_weapon = null
+
+# for ranged attacks
+var last_move_direction = Vector2(-1, 0)
 
 # for melee attacks
 var bodies_in_melee_range = []
@@ -32,9 +34,20 @@ const WEAPONS = {
 	},
 	"Bow": {
 		"animation": "BowAttack",
-		"damage": 15,
-		"type": "ranged"
+		"damage": 30,
+		"type": "ranged",
+		"range": 300
 	},
+}
+
+var WEAPONS_AMMO = {
+	"Bow": arrow
+}
+
+var OBJECTS_COUNT = {
+	arrow: 10,
+	"SimpleKey": 0,
+	"MysteryKey": 0,
 }
 
 func _on_ready() -> void:
@@ -70,8 +83,12 @@ func _physics_process(delta):
 		velocity.y += -SPEED
 	if Input.is_action_pressed("Down"):
 		velocity.y += SPEED
+	
+	var direction = velocity.normalized()
+	if direction != Vector2.ZERO:
+		last_move_direction = direction
 		
-	velocity = velocity.normalized() * SPEED
+	velocity = direction * SPEED
 	move_and_slide()
 	
 	if velocity.length() > 0:
@@ -79,12 +96,9 @@ func _physics_process(delta):
 	else:
 		anim.play("Idle")
 	
-	if Input.is_action_pressed("Sword1"):
-		attack("Sword1")
-	elif Input.is_action_pressed("Sword2"):
-		attack("Sword2")
-	elif Input.is_action_pressed("Bow"):
-		attack("Bow")
+	for weapon in ["Sword1", "Sword2", "Bow"]:
+		if Input.is_action_just_pressed(weapon):
+			attack(weapon)
 
 func is_alive():
 	return health > 0
@@ -103,6 +117,10 @@ func get_weapon_animation(weapon):
 		return WEAPONS[weapon]["animation"]
 	return null
 	
+func get_ammo_by_weapon(weapon):
+	if weapon in WEAPONS_AMMO:
+		return WEAPONS_AMMO[weapon]
+	
 func attack(weapon):
 	if weapon == null:
 		return 
@@ -114,7 +132,29 @@ func attack(weapon):
 	if WEAPONS[weapon]["type"] == "melee":
 		for body in bodies_in_melee_range:
 			if body.has_method("take_damage"):
+				print(body.name)
 				body.take_damage(get_weapon_damage(weapon))
+	elif WEAPONS[weapon]["type"] == "ranged":
+		var ammo_type = get_ammo_by_weapon(weapon)
+		if use_object(ammo_type):
+			var ammo = ammo_type.instantiate()
+			ammo.global_transform = $Node2D/Marker2D.global_transform
+			ammo.set_shooter(self)
+			ammo.set_direction(last_move_direction)
+			ammo.set_damage(WEAPONS[weapon]["damage"])
+			add_child(ammo)
+		
+func has_object(obj):
+	if obj in OBJECTS_COUNT:
+		return OBJECTS_COUNT[obj] > 0
+	return false
+		
+func use_object(obj):
+	if !has_object(obj):
+		return false
+	print("used object: ", obj)
+	OBJECTS_COUNT[obj] -= 1
+	return true
 
 func _on_area_2d_body_entered(body: Node2D) -> void:
 	if body not in bodies_in_melee_range and body.name != "player":
@@ -139,10 +179,10 @@ func take_damage(damage: int = 0):
 func death():
 	health = 0
 	anim.play("Death")
-	on_death()
-	
-func on_death():
 	print("player dead")
 	
 func _on_hit_timer_timeout() -> void:
 	anim.material.set_shader_parameter("hit_opacity", 0.0)
+	
+func destroy():
+	queue_free()
