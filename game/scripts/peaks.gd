@@ -1,7 +1,7 @@
 extends Node2D
 
-const DMG = 24
-const DMG_INTERVAL = 0.5
+const DMG = 3
+const DMG_INTERVAL = 0.1
 const SHOW_DURATION = 5.0
 const HIDE_DURATION = 3.0
 

@@ -15,9 +15,9 @@ const CELL_SIZE = 3
 const TILE_SIZE = 64
 const TRAPS_RATE = 0.2
 const MOB_RATE = 0.4
-const SIMPLE_CHEST_RATE = 0.1
-const SPAWN_RANGE = 3 * TILE_SIZE
-const DESPAWN_RANGE = 4 * TILE_SIZE
+const SIMPLE_CHEST_RATE = 0.15
+const SPAWN_RANGE = 10 * TILE_SIZE
+const DESPAWN_RANGE = 11 * TILE_SIZE
 
 var source_id = 1
 var ground_atlas = Vector2i(9, 7)
@@ -389,7 +389,7 @@ func _process(delta: float) -> void:
 	check_and_despawn_objects()
 
 func print_path(path):
-	print("\nСамый длинный путь:")
+	print()
 	for y in range(maze.size()):
 		var row = ""
 		for x in range(maze[y].size()):
@@ -400,19 +400,10 @@ func print_path(path):
 		print(row)
 
 func print_maze():
-	print("\nЛабиринт:")
 	for y in range(maze.size()):
 		var row = ""
 		for x in range(maze[y].size()):
 			row += "▓" if not maze[y][x] else " "
-		print(row)
-
-func print_visited(visited):
-	print("\nПосещенные ячейки:")
-	for y in range(visited.size()):
-		var row = ""
-		for x in range(visited[y].size()):
-			row += "▓" if not visited[y][x] else " "
 		print(row)
 
 func get_random_boundary_cell() -> Array:

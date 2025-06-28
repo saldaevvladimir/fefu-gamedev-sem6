@@ -3,8 +3,9 @@ extends CharacterBody2D
 const Globals = preload("res://game/scripts/globals.gd")
 const HIT_OPACITY = 0.6
 const HIT_DURATION = 0.2
+const MAX_HEALTH = 300
 var SPEED = 600
-var health = 1000000
+var health = MAX_HEALTH
 @onready var anim = $AnimatedSprite2D
 @onready var melee_shape = $Area2D/CollisionShape2D
 @onready var hit_timer = $Hit_Timer
@@ -127,7 +128,6 @@ func attack(weapon):
 		anim.play(get_weapon_animation(weapon))
 		for body in bodies_in_melee_range:
 			if body.has_method("take_damage") and body.name != "Player":
-				print(body.name)
 				body.take_damage(get_weapon_damage(weapon))
 	elif WEAPONS[weapon]["type"] == "ranged":
 		var ammo_type = get_ammo_by_weapon(weapon)
@@ -140,6 +140,9 @@ func attack(weapon):
 			ammo.set_damage(WEAPONS[weapon]["damage"])
 			ammo.set_range(WEAPONS[weapon]["range"])
 			add_child(ammo)
+		else:
+			is_attacking = false
+			active_weapon = null
 
 func interact_with_object():
 	if is_interacting:
@@ -147,13 +150,11 @@ func interact_with_object():
 	is_interacting = true
 	var nearest = null
 	var min_distance = INF
-	print(interactive_objects)
 	for body in interactive_objects:
 		var distance = body.global_position.distance_to(global_position)
 		if distance < min_distance:
 			min_distance = distance
 			nearest = body
-	print(nearest, " is near")
 	if nearest:
 		if nearest.is_in_group("chests"):
 			var key_type = "SimpleKey" if nearest.name == "Chest1" else "MysteryKey"
@@ -244,5 +245,5 @@ func _on_area_2d_area_exited(area: Area2D) -> void:
 	handle_object_exit(area)
 
 func heal(amount: int):
-	health = min(health + amount, 100)
+	health = min(health + amount, MAX_HEALTH)
 	print("Player healed for ", amount, " health points. Current health: ", health)
