@@ -2,10 +2,12 @@ extends Node2D
 
 @onready var tile_map = $TileMap
 @onready var player = $Player/Player
+
 const finish = preload("res://game/scenes/door.tscn")
 const Peak = preload("res://game/scenes/objects/Peaks.tscn")
 const Skeleton = preload("res://game/scenes/mobs/Skeleton.tscn")
 const SimpleChest = preload("res://game/scenes/objects/Chest1.tscn")
+
 const WORLD_WIDTH = 10  # in cells
 const WORLD_HEIGHT = 10 # in cells
 const CELL_SIZE = 3     # CELL_SIZExCELL_SIZE tiles in 1 cell
@@ -16,11 +18,9 @@ const SIMPLE_CHEST_RATE = 0.01
 
 # tileset id
 var source_id = 1
-
 # atlases for specific tiles
 var ground_atlas = Vector2i(9, 7)
 var wall_atlas = Vector2i(8, 7)
-
 var wall_t_atlas = Vector2i(4, 4)
 var wall_r_atlas = Vector2i(0, 1)
 var wall_b_atlas = Vector2i(2, 0)
@@ -38,13 +38,21 @@ var maze = [[]]
 var map_width = -1
 var map_height = -1
 
+# Новые переменные для хранения позиций объектов
+var chest_positions = []
+var trap_positions = []
+var mob_positions = []
+var active_chests = {}
+var active_traps = {}
+var active_mobs = {}
+
 func _ready() -> void:
 	generate_world()
 
 func set_map_size(width, height):
 	map_width = width
 	map_height = height
-	
+
 func set_maze(new_maze):
 	maze = new_maze
 
@@ -54,24 +62,19 @@ func generate_world():
 	var longest_path = find_longest_path(start_pos)
 	var exit_pos = longest_path[-1]
 	print(exit_pos)
-
 	generate_map()
-
 	player.position = Vector2(
 		TILE_SIZE * (start_pos[0] * CELL_SIZE + CELL_SIZE / 2),
 		TILE_SIZE * (start_pos[1] * CELL_SIZE + CELL_SIZE / 2)
 	)
 	player.z_index = 1
-
 	var door_position = Vector2(
-		TILE_SIZE * (exit_pos[0] * CELL_SIZE + CELL_SIZE / 2), 
+		TILE_SIZE * (exit_pos[0] * CELL_SIZE + CELL_SIZE / 2),
 		TILE_SIZE * (exit_pos[1] * CELL_SIZE + CELL_SIZE / 2)
 	)
-	
 	var door = finish.instantiate()
 	door.position = door_position
 	add_child(door)
-
 	print_maze()
 	print_path(longest_path)
 
@@ -86,9 +89,9 @@ func generate_map():
 				for j in range(CELL_SIZE):
 					var atlas = ground_atlas if maze[y][x] else get_wall_atlas(x, y, i, j)
 					tile_map.set_cell(0, Vector2(offset_x + i, offset_y + j), source_id, atlas)
-	#place_traps()
-	#place_mobs()
-	#place_chests()
+	place_traps()
+	place_mobs()
+	place_chests()
 
 func get_wall_atlas(x, y, i, j):
 	# Check if the current tile is on the edge of the cell
@@ -175,26 +178,74 @@ func place_chests():
 	var w = maze[0].size()
 	var h = maze.size()
 	print("Placing chests in a maze of size: ", w, "x", h)
+	chest_positions = []
 	for x in range(1, w - 1):
 		for y in range(1, h - 1):
 			if maze[y][x] and is_next_to_wall(x, y):
 				var rand_val = randf()
 				if rand_val < SIMPLE_CHEST_RATE:
-					place_chest(x, y, SimpleChest)
+					var cell_x = x * CELL_SIZE
+					var cell_y = y * CELL_SIZE
+					var pos_x = randi() % CELL_SIZE
+					var pos_y = randi() % CELL_SIZE
+					var chest_pos = Vector2(
+						(cell_x + pos_x + 0.5) * TILE_SIZE,
+						(cell_y + pos_y + 0.5) * TILE_SIZE
+					)
+					chest_positions.append(chest_pos)
+					print("Added chest position: ", chest_pos)
 
-func place_chest(x, y, chest_type):
-	var cell_x = x * CELL_SIZE
-	var cell_y = y * CELL_SIZE
-	var pos_x = randi() % CELL_SIZE
-	var pos_y = randi() % CELL_SIZE
-	var chest = chest_type.instantiate()
-	chest.position = Vector2(
-		(cell_x + pos_x + 0.5) * TILE_SIZE,
-		(cell_y + pos_y + 0.5) * TILE_SIZE
-	)
-	chest.scale = Vector2(1, 1)
-	add_child(chest)
-	print("Added chest at position: ", chest.position)
+func place_traps():
+	var w = maze[0].size()
+	var h = maze.size()
+	print("Placing traps in a maze of size: ", w, "x", h)
+	trap_positions = []
+	for x in range(1, w - 1):
+		for y in range(1, h - 1):
+			if maze[y][x] and randf() < TRAPS_RATE:
+				print("Potential trap at: ", x, y)
+				if has_opposite_wall_neighbors(x, y) and not is_too_close_to_player(x, y):
+					var cell_x = x * CELL_SIZE
+					var cell_y = y * CELL_SIZE
+					var has_left_and_right_walls = (x > 0 and not maze[y][x - 1]) and (x < w - 1 and not maze[y][x + 1])
+					var has_top_and_bottom_walls = (y > 0 and not maze[y - 1][x]) and (y < h - 1 and not maze[y + 1][x])
+					if has_left_and_right_walls:
+						for i in range(CELL_SIZE):
+							var trap_x = x * CELL_SIZE + i
+							var trap_pos = Vector2(
+								(trap_x + 0.5) * TILE_SIZE,
+								(y * CELL_SIZE + CELL_SIZE / 2 + 0.5) * TILE_SIZE
+							)
+							trap_positions.append(trap_pos)
+							print("Added trap position (horizontal): ", trap_pos)
+					elif has_top_and_bottom_walls:
+						for i in range(CELL_SIZE):
+							var trap_y = y * CELL_SIZE + i
+							var trap_pos = Vector2(
+								(x * CELL_SIZE + CELL_SIZE / 2 + 0.5) * TILE_SIZE,
+								(trap_y + 0.5) * TILE_SIZE
+							)
+							trap_positions.append(trap_pos)
+							print("Added trap position (vertical): ", trap_pos)
+
+func place_mobs():
+	var w = maze[0].size()
+	var h = maze.size()
+	print("Placing mobs in a maze of size: ", w, "x", h)
+	mob_positions = []
+	for x in range(1, w - 1):
+		for y in range(1, h - 1):
+			if maze[y][x] and randf() < MOB_RATE and not is_too_close_to_player(x, y):
+				var cell_x = x * CELL_SIZE
+				var cell_y = y * CELL_SIZE
+				var pos_x = randi() % CELL_SIZE
+				var pos_y = randi() % CELL_SIZE
+				var mob_pos = Vector2(
+					(cell_x + pos_x + 0.5) * TILE_SIZE,
+					(cell_y + pos_y + 0.5) * TILE_SIZE
+				)
+				mob_positions.append(mob_pos)
+				print("Added mob position: ", mob_pos)
 
 func is_next_to_wall(x, y):
 	var w = maze[0].size()
@@ -209,40 +260,6 @@ func is_next_to_wall(x, y):
 	if y < h - 1 and not maze[y + 1][x]:
 		has_wall_neighbors = true
 	return has_wall_neighbors
-
-func place_traps():
-	var w = maze[0].size()
-	var h = maze.size()
-	print("Placing traps in a maze of size: ", w, "x", h)
-	for x in range(1, w - 1):
-		for y in range(1, h - 1):
-			if maze[y][x] and randf() < TRAPS_RATE:
-				print("Potential trap at: ", x, y)
-				if has_opposite_wall_neighbors(x, y) and not is_too_close_to_player(x, y):
-					place_traps_in_line(x, y)
-
-func place_mobs():
-	var w = maze[0].size()
-	var h = maze.size()
-	print("Placing mobs in a maze of size: ", w, "x", h)
-	for x in range(1, w - 1):
-		for y in range(1, h - 1):
-			if maze[y][x] and randf() < MOB_RATE and not is_too_close_to_player(x, y):
-				place_mob(x, y)
-
-func place_mob(x, y):
-	var cell_x = x * CELL_SIZE
-	var cell_y = y * CELL_SIZE
-	var pos_x = randi() % CELL_SIZE
-	var pos_y = randi() % CELL_SIZE
-	var mob = Skeleton.instantiate()
-	mob.position = Vector2(
-		(cell_x + pos_x + 0.5) * TILE_SIZE,
-		(cell_y + pos_y + 0.5) * TILE_SIZE
-	)
-	mob.scale = Vector2(1, 1)
-	add_child(mob)
-	print("Added mob at position: ", mob.position)
 
 func is_too_close_to_player(x, y):
 	var player_cell_x = int(player.position.x / (TILE_SIZE * CELL_SIZE))
@@ -259,33 +276,124 @@ func has_opposite_wall_neighbors(x, y):
 	print("Checking opposite wall neighbors at: ", x, y, "Result: ", result)
 	return result
 
-func place_traps_in_line(x, y):
-	var w = maze[0].size()
-	var h = maze.size()
-	var has_left_and_right_walls = (x > 0 and not maze[y][x - 1]) and (x < w - 1 and not maze[y][x + 1])
-	var has_top_and_bottom_walls = (y > 0 and not maze[y - 1][x]) and (y < h - 1 and not maze[y + 1][x])
-	if has_left_and_right_walls:
-		for i in range(CELL_SIZE):
-			var trap_x = x * CELL_SIZE + i
-			var trap = Peak.instantiate()
-			trap.position = Vector2(
-				(trap_x + 0.5) * TILE_SIZE,
-				(y * CELL_SIZE + CELL_SIZE / 2 + 0.5) * TILE_SIZE
-			)
-			trap.scale = Vector2(4, 4)
-			add_child(trap)
-			print("Added trap at horizontal position: ", trap.position)
-	elif has_top_and_bottom_walls:
-		for i in range(CELL_SIZE):
-			var trap_y = y * CELL_SIZE + i
-			var trap = Peak.instantiate()
-			trap.position = Vector2(
-				(x * CELL_SIZE + CELL_SIZE / 2 + 0.5) * TILE_SIZE,
-				(trap_y + 0.5) * TILE_SIZE
-			)
-			trap.scale = Vector2(4, 4)
-			add_child(trap)
-			print("Added trap at vertical position: ", trap.position)
+func spawn_object_at_position(position: Vector2, object_type: String) -> Node2D:
+	var object: Node2D
+	match object_type:
+		"chest":
+			object = SimpleChest.instantiate()
+			object.add_to_group("chest")
+			if object.has_signal("opened"):
+				object.connect("opened", Callable(self, "_on_chest_opened"))
+			else:
+				print("Warning: Chest object has no 'opened' signal")
+		"trap":
+			object = Peak.instantiate()
+			object.scale = Vector2(4, 4)
+			object.add_to_group("trap")
+		"mob":
+			object = Skeleton.instantiate()
+			object.add_to_group("mob")
+			if object.has_signal("died"):
+				object.connect("died", Callable(self, "_on_mob_died"))
+			else:
+				print("Warning: Mob object has no 'died' signal")
+	object.position = position
+	add_child(object)
+	match object_type:
+		"chest":
+			active_chests[position] = object
+		"trap":
+			active_traps[position] = object
+		"mob":
+			active_mobs[position] = object
+	return object
+
+
+func despawn_object(object: Node2D, position: Vector2, object_type: String):
+	match object_type:
+		"chest":
+			if active_chests.has(position):
+				active_chests.erase(position)
+		"trap":
+			if active_traps.has(position):
+				active_traps.erase(position)
+		"mob":
+			if active_mobs.has(position):
+				active_mobs.erase(position)
+	object.queue_free()
+
+func check_and_spawn_objects():
+	var player_pos = player.position
+	for pos in chest_positions:
+		if not active_chests.has(pos):
+			var distance = player_pos.distance_to(pos)
+			if distance <= 3 * TILE_SIZE:
+				var chest = spawn_object_at_position(pos, "chest")
+	for pos in trap_positions:
+		if not active_traps.has(pos):
+			var distance = player_pos.distance_to(pos)
+			if distance <= 3 * TILE_SIZE:
+				var trap = spawn_object_at_position(pos, "trap")
+	for pos in mob_positions:
+		if not active_mobs.has(pos):
+			var distance = player_pos.distance_to(pos)
+			if distance <= 3 * TILE_SIZE:
+				var mob = spawn_object_at_position(pos, "mob")
+
+func check_and_despawn_objects():
+	var player_pos = player.position
+	var to_remove_chests = []
+	for pos in active_chests.keys():
+		var distance = player_pos.distance_to(pos)
+		if distance > 5 * TILE_SIZE:
+			var chest = active_chests[pos]
+			despawn_object(chest, pos, "chest")
+			to_remove_chests.append(pos)
+	for pos in to_remove_chests:
+		if active_chests.has(pos):
+			active_chests.erase(pos)
+
+	var to_remove_traps = []
+	for pos in active_traps.keys():
+		var distance = player_pos.distance_to(pos)
+		if distance > 5 * TILE_SIZE:
+			var trap = active_traps[pos]
+			despawn_object(trap, pos, "trap")
+			to_remove_traps.append(pos)
+	for pos in to_remove_traps:
+		if active_traps.has(pos):
+			active_traps.erase(pos)
+
+	var to_remove_mobs = []
+	for pos in active_mobs.keys():
+		var distance = player_pos.distance_to(pos)
+		if distance > 5 * TILE_SIZE:
+			var mob = active_mobs[pos]
+			despawn_object(mob, pos, "mob")
+			to_remove_mobs.append(pos)
+	for pos in to_remove_mobs:
+		if active_mobs.has(pos):
+			active_mobs.erase(pos)
+
+func _on_chest_opened(chest):
+	var pos = chest.position
+	if chest_positions.has(pos):
+		chest_positions.erase(pos)
+	if active_chests.has(pos):
+		active_chests.erase(pos)
+	chest.queue_free()
+
+func _on_mob_died(mob):
+	var pos = mob.position
+	if mob_positions.has(pos):
+		mob_positions.erase(pos)
+	if active_mobs.has(pos):
+		active_mobs.erase(pos)
+	mob.queue_free()
+
+func _process(delta: float) -> void:
+	check_and_spawn_objects()
+	check_and_despawn_objects()
 
 func print_path(path):
 	print("\nСамый длинный путь:")
@@ -453,6 +561,3 @@ func dfs(visited: Array, x: int, y: int, end_x: int, end_y: int, current_path: A
 	current_path.pop_back()
 	visited[y][x] = false
 	return []
-
-func _process(delta: float) -> void:
-	pass

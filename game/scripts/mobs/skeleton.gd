@@ -10,6 +10,8 @@ var is_taking_damage = false
 var target = null
 @onready var anim = $AnimatedSprite2D
 
+signal died
+
 func _physics_process(delta: float) -> void:
 	if is_attacking or is_taking_damage or !is_alive():
 		return
@@ -76,6 +78,7 @@ func _on_animated_sprite_2d_animation_finished() -> void:
 	is_attacking = false
 	is_taking_damage = false
 	if !is_alive():
+		emit_signal("died", self)
 		destroy()
 
 func destroy():

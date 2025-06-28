@@ -8,6 +8,8 @@ const Globals = preload("res://game/scripts/globals.gd")
 var contained_objects = {}
 var interactive = true
 
+signal opened
+
 func is_interactive():
 	return interactive
 
@@ -40,5 +42,4 @@ func add_object(obj, count):
 
 func _on_animated_sprite_2d_animation_finished():
 	if anim.animation == "Open":
-		# Здесь можно добавить код для обработки завершения анимации открытия
-		pass
+		emit_signal("opened", self)
