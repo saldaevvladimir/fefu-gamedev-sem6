@@ -11,11 +11,11 @@ const WORLD_HEIGHT = 10
 const CELL_SIZE = 3
 const TILE_SIZE = 64
 const TRAPS_RATE = 0.2
-const MOB_RATE = 0.3
-const SIMPLE_CHEST_RATE = 0.03
+const MOB_RATE = 0.2
+const SIMPLE_CHEST_RATE = 0.5
 
-const SPAWN_RANGE = 10 * TILE_SIZE
-const DESPAWN_RANGE = 11 * TILE_SIZE
+const SPAWN_RANGE = 3 * TILE_SIZE
+const DESPAWN_RANGE = 4 * TILE_SIZE
 
 var source_id = 1
 var ground_atlas = Vector2i(9, 7)
@@ -69,6 +69,7 @@ func generate_world():
 	)
 	var door = finish.instantiate()
 	door.position = door_position
+	door.z_index = 1
 	add_child(door)
 
 func generate_map():
@@ -284,75 +285,86 @@ func despawn_object(object: Node2D, position: Vector2, object_type: String):
 		"chest":
 			if active_chests.has(position):
 				active_chests.erase(position)
+			if not object.is_interactive():
+				object.queue_free()
+			else:
+				chest_positions.append(position)
 		"trap":
 			if active_traps.has(position):
 				active_traps.erase(position)
+			trap_positions.append(position)
 		"mob":
 			if active_mobs.has(position):
 				active_mobs.erase(position)
-			if mob_positions.has(position):
-				mob_positions.erase(position)
-			mob_positions.append(object.position)
+			if object.is_alive():
+				mob_positions.append(object.position)
 	object.queue_free()
 
 func check_and_spawn_objects():
 	var player_pos = player.position
+	var to_spawn_chests = []
 	for pos in chest_positions:
-		if not active_chests.has(pos):
-			var distance = player_pos.distance_to(pos)
-			if distance <= SPAWN_RANGE:
-				var chest = spawn_object_at_position(pos, "chest")
+		var distance = player_pos.distance_to(pos)
+		if distance <= SPAWN_RANGE:
+			to_spawn_chests.append(pos)
+	for pos in to_spawn_chests:
+		chest_positions.erase(pos)
+		var chest = spawn_object_at_position(pos, "chest")
+
+	var to_spawn_traps = []
 	for pos in trap_positions:
-		if not active_traps.has(pos):
-			var distance = player_pos.distance_to(pos)
-			if distance <= SPAWN_RANGE:
-				var trap = spawn_object_at_position(pos, "trap")
+		var distance = player_pos.distance_to(pos)
+		if distance <= SPAWN_RANGE:
+			to_spawn_traps.append(pos)
+	for pos in to_spawn_traps:
+		trap_positions.erase(pos)
+		var trap = spawn_object_at_position(pos, "trap")
+
+	var to_spawn_mobs = []
 	for pos in mob_positions:
-		if not active_mobs.has(pos):
-			var distance = player_pos.distance_to(pos)
-			if distance <= SPAWN_RANGE:
-				var mob = spawn_object_at_position(pos, "mob")
+		var distance = player_pos.distance_to(pos)
+		if distance <= SPAWN_RANGE:
+			to_spawn_mobs.append(pos)
+	for pos in to_spawn_mobs:
+		mob_positions.erase(pos)
+		var mob = spawn_object_at_position(pos, "mob")
 
 func check_and_despawn_objects():
 	var player_pos = player.position
-	var to_remove_chests = []
+	var to_despawn_chests = []
 	for pos in active_chests.keys():
 		var distance = player_pos.distance_to(pos)
 		if distance > DESPAWN_RANGE:
-			var chest = active_chests[pos]
-			if is_instance_valid(chest):
-				despawn_object(chest, pos, "chest")
-			to_remove_chests.append(pos)
-	for pos in to_remove_chests:
-		if active_chests.has(pos):
-			active_chests.erase(pos)
-	var to_remove_traps = []
+			to_despawn_chests.append(pos)
+	for pos in to_despawn_chests:
+		var chest = active_chests[pos]
+		if is_instance_valid(chest):
+			despawn_object(chest, pos, "chest")
+
+	var to_despawn_traps = []
 	for pos in active_traps.keys():
 		var distance = player_pos.distance_to(pos)
 		if distance > DESPAWN_RANGE:
-			var trap = active_traps[pos]
-			if is_instance_valid(trap):
-				despawn_object(trap, pos, "trap")
-			to_remove_traps.append(pos)
-	for pos in to_remove_traps:
-		if active_traps.has(pos):
-			active_traps.erase(pos)
-	var to_remove_mobs = []
+			to_despawn_traps.append(pos)
+	for pos in to_despawn_traps:
+		var trap = active_traps[pos]
+		if is_instance_valid(trap):
+			despawn_object(trap, pos, "trap")
+
+	var to_despawn_mobs = []
 	for pos in active_mobs.keys():
 		var distance = player_pos.distance_to(pos)
 		if distance > DESPAWN_RANGE:
-			var mob = active_mobs[pos]
-			if is_instance_valid(mob):
-				despawn_object(mob, pos, "mob")
-			to_remove_mobs.append(pos)
-	for pos in to_remove_mobs:
-		if active_mobs.has(pos):
-			active_mobs.erase(pos)
+			to_despawn_mobs.append(pos)
+	for pos in to_despawn_mobs:
+		var mob = active_mobs[pos]
+		if is_instance_valid(mob):
+			despawn_object(mob, mob.position, "mob")
 
 func _on_chest_opened(chest):
+	if not is_instance_valid(chest):
+		return
 	var pos = chest.position
-	if chest_positions.has(pos):
-		chest_positions.erase(pos)
 	if active_chests.has(pos):
 		active_chests.erase(pos)
 	chest.queue_free()
@@ -361,8 +373,6 @@ func _on_mob_died(mob):
 	if not is_instance_valid(mob):
 		return
 	var pos = mob.position
-	if mob_positions.has(pos):
-		mob_positions.erase(pos)
 	if active_mobs.has(pos):
 		active_mobs.erase(pos)
 	mob.queue_free()

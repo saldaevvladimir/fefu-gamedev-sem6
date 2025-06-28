@@ -8,34 +8,44 @@ var is_chasing = false
 var is_attacking = false
 var is_taking_damage = false
 var target = null
+
 @onready var anim = $AnimatedSprite2D
 
 signal died
+signal position_updated(new_position)
 
 func _physics_process(delta: float) -> void:
 	if is_attacking or is_taking_damage or !is_alive():
 		return
+
 	var player = get_node_or_null("../Player/Player")
 	if player == null:
 		return
+
 	var position_delta = (player.position - self.position)
 	if position_delta.length() <= ATTACK_RNG:
 		is_chasing = false
 	elif target != null:
 		is_chasing = true
+
 	var direction = position_delta.normalized()
 	if is_chasing:
 		velocity = direction * SPEED
 	else:
 		velocity = Vector2.ZERO
+
 	move_and_slide()
+
 	if velocity.length() > 0:
 		anim.play("Walk")
 		anim.flip_h = velocity.x < 0
 	else:
 		anim.play("Idle")
+
 	if target != null and !is_chasing and target.is_alive():
 		attack()
+
+	emit_signal("position_updated", position)
 
 func _on_detector_body_entered(body: Node2D) -> void:
 	if body.name == "Player":

@@ -225,10 +225,7 @@ func destroy():
 	queue_free()
 
 func handle_object_entry(obj):
-	print("hehehheheheh")
-	print(obj.name)
 	if obj.is_in_group("chests") and obj.is_interactive():
-		print("goooooooooood")
 		print("Object entered: ", obj.name)
 		if obj.auto_interact():
 			obj.interact()
