@@ -15,6 +15,12 @@ run/main_scene="uid://dtl0qakeex18t"
 config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://icon.svg"
 
+[debug]
+
+settings/profiler/max_functions=32000
+settings/profiler/max_timestamp_query_elements=512
+settings/gdscript/max_call_stack=2047
+
 [display]
 
 window/size/viewport_width=1280

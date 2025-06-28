@@ -6,13 +6,13 @@ const finish = preload("res://game/scenes/door.tscn")
 const Peak = preload("res://game/scenes/objects/Peaks.tscn")
 const Skeleton = preload("res://game/scenes/mobs/Skeleton.tscn")
 const SimpleChest = preload("res://game/scenes/objects/Chest1.tscn")
-const WORLD_WIDTH = 10  # in cells
-const WORLD_HEIGHT = 10 # in cells
+const WORLD_WIDTH = 60  # in cells
+const WORLD_HEIGHT = 60 # in cells
 const CELL_SIZE = 3     # 4x4 tiles in 1 cell
 const TILE_SIZE = 64    # in pixels
-const TRAPS_RATE = 0.05
+const TRAPS_RATE = 0.02
 const MOB_RATE = 0.3
-const SIMPLE_CHEST_RATE = 0.1
+const SIMPLE_CHEST_RATE = 0.01
 
 # tileset id
 var source_id = 1
@@ -54,7 +54,6 @@ func generate_world():
 	)
 	player.z_index = 1
 
-	# Place the door at a distance of 500 units along the x-axis from the player's starting position
 	var door_position = Vector2(
 		TILE_SIZE * (exit_pos[0] * CELL_SIZE + CELL_SIZE / 2), 
 		TILE_SIZE * (exit_pos[1] * CELL_SIZE + CELL_SIZE / 2)
@@ -78,8 +77,8 @@ func generate_map(maze):
 				for j in range(CELL_SIZE):
 					var atlas = ground_atlas if maze[y][x] else wall_atlas
 					tile_map.set_cell(0, Vector2(offset_x + i, offset_y + j), source_id, atlas)
-	#place_traps(maze)
-	#place_mobs(maze)
+	place_traps(maze)
+	place_mobs(maze)
 	place_chests(maze)
 
 func place_chests(maze):

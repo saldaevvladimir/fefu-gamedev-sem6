@@ -3,7 +3,7 @@ extends CharacterBody2D
 const Globals = preload("res://game/scripts/globals.gd")
 const HIT_OPACITY = 0.6
 const HIT_DURATION = 0.2
-var SPEED = 600
+var SPEED = 300
 var health = 100
 @onready var anim = $AnimatedSprite2D
 @onready var melee_shape = $Area2D/CollisionShape2D
@@ -59,9 +59,8 @@ func _ready() -> void:
 	material.shader = shader
 	anim.material = material
 	hit_timer.wait_time = HIT_DURATION
-
 	add_child(interaction_timer)
-	interaction_timer.wait_time = 2 
+	interaction_timer.wait_time = 2
 	interaction_timer.one_shot = true
 	interaction_timer.timeout.connect(_on_interaction_timer_timeout)
 
@@ -161,7 +160,6 @@ func interact_with_object():
 			if use_object(key_type):
 				var objects = nearest.interact()
 				_on_chest_opened(objects)
-	# Запускаем таймер для сброса флага взаимодействия
 	interaction_timer.start()
 
 func _on_interaction_timer_timeout():
@@ -247,3 +245,7 @@ func _on_area_2d_area_entered(area: Area2D) -> void:
 
 func _on_area_2d_area_exited(area: Area2D) -> void:
 	handle_object_exit(area)
+
+func heal(amount: int):
+	health = min(health + amount, 100)
+	print("Player healed for ", amount, " health points. Current health: ", health)
