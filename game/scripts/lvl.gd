@@ -2,13 +2,12 @@ extends Node2D
 
 @onready var tile_map = $TileMap
 @onready var player = $Player/Player
-
+const finish = preload("res://game/scenes/door.tscn")
 const Peak = preload("res://game/scenes/objects/Peaks.tscn")
 const Skeleton = preload("res://game/scenes/mobs/Skeleton.tscn")
 const SimpleChest = preload("res://game/scenes/objects/Chest1.tscn")
-
-const WORLD_WIDTH = 30  # in cells
-const WORLD_HEIGHT = 20 # in cells
+const WORLD_WIDTH = 10  # in cells
+const WORLD_HEIGHT = 10 # in cells
 const CELL_SIZE = 3     # 4x4 tiles in 1 cell
 const TILE_SIZE = 64    # in pixels
 const TRAPS_RATE = 0.05
@@ -17,6 +16,7 @@ const SIMPLE_CHEST_RATE = 0.1
 
 # tileset id
 var source_id = 1
+
 # atlases for specific tiles
 var wall_atlas = Vector2i(8, 7)
 var wall_t_atlas = Vector2i(2, 0)
@@ -28,6 +28,7 @@ var wall_ibl_atlas = Vector2i(0, 4)
 var wall_otl_atlas = Vector2i(0, 5)
 var wall_otr_atlas = Vector2i(5, 5)
 var ground_atlas = Vector2i(9, 7)
+
 var map_width = -1
 var map_height = -1
 
@@ -43,12 +44,26 @@ func generate_world():
 	var start_pos = get_random_boundary_cell(maze)
 	var longest_path = find_longest_path(maze, start_pos)
 	var exit_pos = longest_path[-1]
+	print(exit_pos)
+
 	generate_map(maze)
+
 	player.position = Vector2(
 		TILE_SIZE * (start_pos[0] * CELL_SIZE + CELL_SIZE / 2),
 		TILE_SIZE * (start_pos[1] * CELL_SIZE + CELL_SIZE / 2)
 	)
 	player.z_index = 1
+
+	# Place the door at a distance of 500 units along the x-axis from the player's starting position
+	var door_position = Vector2(
+		TILE_SIZE * (exit_pos[0] * CELL_SIZE + CELL_SIZE / 2), 
+		TILE_SIZE * (exit_pos[1] * CELL_SIZE + CELL_SIZE / 2)
+	)
+	
+	var door = finish.instantiate()
+	door.position = door_position
+	add_child(door)
+
 	print_maze(maze)
 	print_path(maze, longest_path)
 
