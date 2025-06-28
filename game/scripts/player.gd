@@ -1,5 +1,7 @@
 extends CharacterBody2D
 
+const Globals = preload("res://game/scripts/globals.gd")
+
 const HIT_OPACITY = 0.6
 const HIT_DURATION = 0.2
 
@@ -48,20 +50,9 @@ var WEAPONS_AMMO = {
 
 var OBJECTS_COUNT = {
 	arrow: 10,
-	"SimpleKey": 0,
-	"MysteryKey": 0,
+	"SimpleKey": 5,
+	"MysteryKey": 5,
 }
-
-const EXISTING_OBJECTS = [
-	"Chest1",
-	"Chest2",
-	"SimpleKey",
-	"MysteryKey",
-	arrow,
-	"Bonus",
-	"Gold",
-	"Shards"
-]
 
 func _on_ready() -> void:
 	var shader = Shader.new()
@@ -114,8 +105,7 @@ func _physics_process(delta):
 			attack(weapon)
 			
 	if Input.is_action_pressed("Chest"):
-		open_chest()
-		print("idi nahui")
+		interact_with_object()
 
 func is_alive():
 	return health > 0
@@ -162,28 +152,29 @@ func attack(weapon):
 			ammo.set_damage(WEAPONS[weapon]["damage"])
 			add_child(ammo)
 
-func open_chest():
-	var nearest_chest = null
+func interact_with_object():
+	var nearest = null
 	var min_distance = INF
 	
 	for body in interactive_objects:
-		if body.is_in_group("chests"):
-			var distance = body.global_position.distance_to(global_position)
-			if distance < min_distance:
-				min_distance = distance
-				nearest_chest = body
-	
-	if nearest_chest:
-		print("hehehaha")
-		var key_type = "SimpleKey" if nearest_chest.name == "Chest1" else "MysteryKey"
-		if use_object(key_type):
-			nearest_chest.open()
-			nearest_chest.connect("chest_opened", self, "_on_chest_opened")
+		#if body.is_in_group("chests"):
+		var distance = body.global_position.distance_to(global_position)
+		if distance < min_distance:
+			min_distance = distance
+			nearest = body
+			
+	if nearest:
+		if nearest.is_in_group("chests"):
+			var key_type = "SimpleKey" if nearest.name == "Chest1" else "MysteryKey"
+			if use_object(key_type):
+				var objects = nearest.interact()
+				_on_chest_opened(objects)
 
 func _on_chest_opened(objects):
-	for obj in objects:
-		var obj_name = obj.keys()[0]
-		var obj_count = obj.values()[0]
+	if not objects:
+		return
+	for obj_name in objects:
+		var obj_count = objects[obj_name]
 		receive_object(obj_name, obj_count)
 
 func has_object(obj):
@@ -198,10 +189,13 @@ func use_object(obj):
 	OBJECTS_COUNT[obj] -= 1
 	return true
 	
-func receive_object(obj, count):
-	if obj in OBJECTS_COUNT and count >= 1:
-		OBJECTS_COUNT[obj] += count
-		print("Received object: ", obj, " - ", count)
+func receive_object(obj_name, count):
+	if obj_name in OBJECTS_COUNT:
+		OBJECTS_COUNT[obj_name] += count
+		print("Received object: ", obj_name, " - ", count)
+	else:
+		OBJECTS_COUNT[obj_name] = count
+		print("Received new object: ", obj_name, " - ", count)
 
 func _on_area_2d_body_entered(body: Node2D) -> void:
 	if body not in bodies_in_melee_range and body.name != "player":
@@ -237,12 +231,17 @@ func destroy():
 	queue_free()
 	
 func handle_object_entry(obj):
-	if obj.name in EXISTING_OBJECTS:
-		print("entry object: ", obj.name)
+	if obj.name in Globals.EXISTING_OBJECTS and obj.is_interactive():
+		print("object entered: ", obj.name)
+		if obj.auto_interact():
+			obj.interact()
+		else:
+			interactive_objects.append(obj)
 		
 func handle_object_exit(obj):
-	if obj.name in EXISTING_OBJECTS:
-		print("exit object: ", obj.name)
+	if obj in interactive_objects:
+		interactive_objects.erase(obj)
+		print("object exited: ", obj.name)
 
 func _on_area_2d_area_entered(area: Area2D) -> void:
 	# all OBJECTS must have Area2D as root node
