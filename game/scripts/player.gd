@@ -135,7 +135,6 @@ func take_damage(damage: int = 0):
 	
 	if !is_alive():
 		death()
-	print('player health: ', health)
 		
 func death():
 	health = 0

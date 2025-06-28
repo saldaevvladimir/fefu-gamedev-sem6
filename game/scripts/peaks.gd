@@ -42,7 +42,6 @@ func _on_area_2d_body_exited(body: Node2D) -> void:
 func _on_dmg_timer_timeout() -> void:
 	if is_active and target != null:
 		target.take_damage(DMG)
-		print("Урон нанесен игроку")
 
 func _on_show_timer_timeout() -> void:
 	if is_active:
@@ -55,8 +54,7 @@ func _on_show_timer_timeout() -> void:
 	show_timer.start()
 
 func _on_animated_sprite_2d_animation_finished() -> void:
-	#print('animation finished peaks')
 	pass
 
 func _on_animated_sprite_2d_animation_changed() -> void:
-	pass # Replace with function body.
+	pass
