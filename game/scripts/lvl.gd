@@ -6,9 +6,9 @@ const finish = preload("res://game/scenes/door.tscn")
 const Peak = preload("res://game/scenes/objects/Peaks.tscn")
 const Skeleton = preload("res://game/scenes/mobs/Skeleton.tscn")
 const SimpleChest = preload("res://game/scenes/objects/Chest1.tscn")
-const WORLD_WIDTH = 60  # in cells
-const WORLD_HEIGHT = 60 # in cells
-const CELL_SIZE = 3     # 4x4 tiles in 1 cell
+const WORLD_WIDTH = 10  # in cells
+const WORLD_HEIGHT = 10 # in cells
+const CELL_SIZE = 3     # CELL_SIZExCELL_SIZE tiles in 1 cell
 const TILE_SIZE = 64    # in pixels
 const TRAPS_RATE = 0.02
 const MOB_RATE = 0.3
@@ -18,17 +18,23 @@ const SIMPLE_CHEST_RATE = 0.01
 var source_id = 1
 
 # atlases for specific tiles
+var ground_atlas = Vector2i(9, 7)
 var wall_atlas = Vector2i(8, 7)
-var wall_t_atlas = Vector2i(2, 0)
+
+var wall_t_atlas = Vector2i(4, 4)
 var wall_r_atlas = Vector2i(0, 1)
-var wall_b_atlas = Vector2i(4, 4)
+var wall_b_atlas = Vector2i(2, 0)
 var wall_l_atlas = Vector2i(5, 1)
+var wall_obr_atlas = Vector2i(4, 0)
+var wall_obl_atlas = Vector2i(3, 0)
 var wall_ibr_atlas = Vector2i(5, 4)
 var wall_ibl_atlas = Vector2i(0, 4)
+var wall_itl_atlas = Vector2i(0, 0)
+var wall_itr_atlas = Vector2i(5, 0)
 var wall_otl_atlas = Vector2i(0, 5)
 var wall_otr_atlas = Vector2i(5, 5)
-var ground_atlas = Vector2i(9, 7)
 
+var maze = [[]]
 var map_width = -1
 var map_height = -1
 
@@ -38,15 +44,18 @@ func _ready() -> void:
 func set_map_size(width, height):
 	map_width = width
 	map_height = height
+	
+func set_maze(new_maze):
+	maze = new_maze
 
 func generate_world():
-	var maze = generate_maze(WORLD_WIDTH, WORLD_HEIGHT)
-	var start_pos = get_random_boundary_cell(maze)
-	var longest_path = find_longest_path(maze, start_pos)
+	set_maze(generate_maze(WORLD_WIDTH, WORLD_HEIGHT))
+	var start_pos = get_random_boundary_cell()
+	var longest_path = find_longest_path(start_pos)
 	var exit_pos = longest_path[-1]
 	print(exit_pos)
 
-	generate_map(maze)
+	generate_map()
 
 	player.position = Vector2(
 		TILE_SIZE * (start_pos[0] * CELL_SIZE + CELL_SIZE / 2),
@@ -63,36 +72,117 @@ func generate_world():
 	door.position = door_position
 	add_child(door)
 
-	print_maze(maze)
-	print_path(maze, longest_path)
+	print_maze()
+	print_path(longest_path)
 
-func generate_map(maze):
-	var w = maze[0].size()
-	var h = maze.size()
+func generate_map():
+	var w = map_width
+	var h = map_height
 	for x in range(w):
 		for y in range(h):
 			var offset_x = x * CELL_SIZE
 			var offset_y = y * CELL_SIZE
 			for i in range(CELL_SIZE):
 				for j in range(CELL_SIZE):
-					var atlas = ground_atlas if maze[y][x] else wall_atlas
+					var atlas = ground_atlas if maze[y][x] else get_wall_atlas(x, y, i, j)
 					tile_map.set_cell(0, Vector2(offset_x + i, offset_y + j), source_id, atlas)
-	place_traps(maze)
-	place_mobs(maze)
-	place_chests(maze)
+	#place_traps()
+	#place_mobs()
+	#place_chests()
 
-func place_chests(maze):
+func get_wall_atlas(x, y, i, j):
+	# Check if the current tile is on the edge of the cell
+	if i == 0:
+		if j == 0:
+			# Top-left corner
+			if y > 0 and x > 0 and maze[y - 1][x] and maze[y][x - 1]:
+				return wall_otl_atlas
+			elif y > 0 and maze[y - 1][x]:
+				return wall_t_atlas
+			elif x > 0 and maze[y][x - 1]:
+				return wall_l_atlas
+			elif x > 0 and y > 0 and maze[y - 1][x - 1]:
+				return wall_ibr_atlas
+			else:
+				return wall_atlas
+		elif j == CELL_SIZE - 1:
+			# Bottom-left corner
+			if y < map_height - 1 and x > 0 and maze[y + 1][x] and maze[y][x - 1]:
+				return wall_obl_atlas
+			elif y < map_height - 1 and maze[y + 1][x]:
+				return wall_b_atlas
+			elif x > 0 and maze[y][x - 1]:
+				return wall_l_atlas
+			elif x > 0 and y < map_height - 1 and maze[y + 1][x - 1]:
+				return wall_itr_atlas
+			else:
+				return wall_atlas
+		else:
+			# Left edge
+			if x > 0 and maze[y][x - 1]:
+				return wall_l_atlas
+			else:
+				return wall_atlas
+	elif i == CELL_SIZE - 1:
+		if j == 0:
+			# Top-right corner
+			if y > 0 and x < map_width - 1 and maze[y - 1][x] and maze[y][x + 1]:
+				return wall_otr_atlas
+			elif y > 0 and maze[y - 1][x]:
+				return wall_t_atlas
+			elif x < map_width - 1 and maze[y][x + 1]:
+				return wall_r_atlas
+			elif y > 0 and x < map_width - 1 and maze[y - 1][x + 1]:
+				return wall_ibl_atlas
+			else:
+				return wall_atlas
+		elif j == CELL_SIZE - 1:
+			# Bottom-right corner
+			if y < map_height - 1 and x < map_width - 1 and maze[y + 1][x] and maze[y][x + 1]:
+				return wall_obr_atlas
+			elif y < map_height - 1 and maze[y + 1][x]:
+				return wall_b_atlas
+			elif x < map_width - 1 and maze[y][x + 1]:
+				return wall_r_atlas
+			elif y < map_height - 1 and x < map_height - 1 and maze[y + 1][x + 1]:
+				return wall_itl_atlas
+			else:
+				return wall_atlas
+		else:
+			# Right edge
+			if x < map_width - 1 and maze[y][x + 1]:
+				return wall_r_atlas
+			else:
+				return wall_atlas
+	else:
+		if j == 0:
+			# Top edge
+			if y > 0 and maze[y - 1][x]:
+				return wall_t_atlas
+			else:
+				return wall_atlas
+		elif j == CELL_SIZE - 1:
+			# Bottom edge
+			if y < map_height - 1 and maze[y + 1][x]:
+				return wall_b_atlas
+			else:
+				return wall_atlas
+		else:
+			# Inner tile
+			return wall_atlas
+
+func place_chests():
 	var w = maze[0].size()
 	var h = maze.size()
 	print("Placing chests in a maze of size: ", w, "x", h)
 	for x in range(1, w - 1):
 		for y in range(1, h - 1):
-			if maze[y][x] and is_next_to_wall(maze, x, y):
+			if maze[y][x] and is_next_to_wall(x, y):
 				var rand_val = randf()
 				if rand_val < SIMPLE_CHEST_RATE:
-					place_chest(maze, x, y, SimpleChest)
+					place_chest(x, y, SimpleChest)
 
-func place_chest(maze, x, y, chest_type):
+func place_chest(x, y, chest_type):
 	var cell_x = x * CELL_SIZE
 	var cell_y = y * CELL_SIZE
 	var pos_x = randi() % CELL_SIZE
@@ -106,7 +196,7 @@ func place_chest(maze, x, y, chest_type):
 	add_child(chest)
 	print("Added chest at position: ", chest.position)
 
-func is_next_to_wall(maze, x, y):
+func is_next_to_wall(x, y):
 	var w = maze[0].size()
 	var h = maze.size()
 	var has_wall_neighbors = false
@@ -120,7 +210,7 @@ func is_next_to_wall(maze, x, y):
 		has_wall_neighbors = true
 	return has_wall_neighbors
 
-func place_traps(maze):
+func place_traps():
 	var w = maze[0].size()
 	var h = maze.size()
 	print("Placing traps in a maze of size: ", w, "x", h)
@@ -128,19 +218,19 @@ func place_traps(maze):
 		for y in range(1, h - 1):
 			if maze[y][x] and randf() < TRAPS_RATE:
 				print("Potential trap at: ", x, y)
-				if has_opposite_wall_neighbors(maze, x, y) and not is_too_close_to_player(x, y):
-					place_traps_in_line(maze, x, y)
+				if has_opposite_wall_neighbors(x, y) and not is_too_close_to_player(x, y):
+					place_traps_in_line(x, y)
 
-func place_mobs(maze):
+func place_mobs():
 	var w = maze[0].size()
 	var h = maze.size()
 	print("Placing mobs in a maze of size: ", w, "x", h)
 	for x in range(1, w - 1):
 		for y in range(1, h - 1):
 			if maze[y][x] and randf() < MOB_RATE and not is_too_close_to_player(x, y):
-				place_mob(maze, x, y)
+				place_mob(x, y)
 
-func place_mob(maze, x, y):
+func place_mob(x, y):
 	var cell_x = x * CELL_SIZE
 	var cell_y = y * CELL_SIZE
 	var pos_x = randi() % CELL_SIZE
@@ -160,7 +250,7 @@ func is_too_close_to_player(x, y):
 	var distance = sqrt((x - player_cell_x) ** 2 + (y - player_cell_y) ** 2)
 	return distance < 2
 
-func has_opposite_wall_neighbors(maze, x, y):
+func has_opposite_wall_neighbors(x, y):
 	var w = maze[0].size()
 	var h = maze.size()
 	var has_left_and_right_walls = (x > 0 and not maze[y][x - 1]) and (x < w - 1 and not maze[y][x + 1])
@@ -169,7 +259,7 @@ func has_opposite_wall_neighbors(maze, x, y):
 	print("Checking opposite wall neighbors at: ", x, y, "Result: ", result)
 	return result
 
-func place_traps_in_line(maze, x, y):
+func place_traps_in_line(x, y):
 	var w = maze[0].size()
 	var h = maze.size()
 	var has_left_and_right_walls = (x > 0 and not maze[y][x - 1]) and (x < w - 1 and not maze[y][x + 1])
@@ -197,7 +287,7 @@ func place_traps_in_line(maze, x, y):
 			add_child(trap)
 			print("Added trap at vertical position: ", trap.position)
 
-func print_path(maze, path):
+func print_path(path):
 	print("\nСамый длинный путь:")
 	for y in range(maze.size()):
 		var row = ""
@@ -208,7 +298,7 @@ func print_path(maze, path):
 				row += '*' if [x, y] in path else ' '
 		print(row)
 
-func print_maze(maze):
+func print_maze():
 	print("\nЛабиринт:")
 	for y in range(maze.size()):
 		var row = ""
@@ -216,7 +306,7 @@ func print_maze(maze):
 			row += "▓" if not maze[y][x] else " "
 		print(row)
 
-func get_random_boundary_cell(maze: Array) -> Array:
+func get_random_boundary_cell() -> Array:
 	var h: int = maze.size()
 	if h == 0:
 		return []
@@ -293,7 +383,7 @@ func recursive_backtracker(maze: Array, visited: Array, x: int, y: int, w: int, 
 		recursive_backtracker(maze, visited, nx, ny, w, h)
 		neighbors = get_unvisited_neighbors(visited, x, y, w, h)
 
-func find_longest_path(maze: Array, start_pos: Array) -> Array:
+func find_longest_path(start_pos: Array) -> Array:
 	var w: int = maze[0].size()
 	var h: int = maze.size()
 	var start_x = start_pos[0]
@@ -326,13 +416,13 @@ func find_longest_path(maze: Array, start_pos: Array) -> Array:
 	var longest_path: Array = []
 	var max_length: int = 0
 	for end_pos in boundary_cells:
-		var path = find_path(maze, start_pos, end_pos)
+		var path = find_path(start_pos, end_pos)
 		if path.size() > max_length:
 			max_length = path.size()
 			longest_path = path
 	return longest_path
 
-func find_path(maze: Array, start_pos: Array, end_pos: Array) -> Array:
+func find_path(start_pos: Array, end_pos: Array) -> Array:
 	var w: int = maze[0].size()
 	var h: int = maze.size()
 	var visited: Array = []
@@ -341,10 +431,10 @@ func find_path(maze: Array, start_pos: Array, end_pos: Array) -> Array:
 		for x in range(w):
 			visited[y].append(false)
 	var current_path: Array = []
-	var path = dfs(maze, visited, start_pos[0], start_pos[1], end_pos[0], end_pos[1], current_path)
+	var path = dfs(visited, start_pos[0], start_pos[1], end_pos[0], end_pos[1], current_path)
 	return path
 
-func dfs(maze: Array, visited: Array, x: int, y: int, end_x: int, end_y: int, current_path: Array) -> Array:
+func dfs(visited: Array, x: int, y: int, end_x: int, end_y: int, current_path: Array) -> Array:
 	if x == end_x and y == end_y:
 		var result_path = current_path.duplicate()
 		result_path.append([x, y])
@@ -357,7 +447,7 @@ func dfs(maze: Array, visited: Array, x: int, y: int, end_x: int, end_y: int, cu
 		var ny = y + dir[1]
 		if nx >= 0 and nx < maze[0].size() and ny >= 0 and ny < maze.size():
 			if maze[ny][nx] and not visited[ny][nx]:
-				var result_path = dfs(maze, visited, nx, ny, end_x, end_y, current_path)
+				var result_path = dfs(visited, nx, ny, end_x, end_y, current_path)
 				if result_path.size() > 0:
 					return result_path
 	current_path.pop_back()
