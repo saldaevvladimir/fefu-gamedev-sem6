@@ -40,7 +40,7 @@ const WEAPONS = {
 		"animation": "BowAttack",
 		"damage": 30,
 		"type": "ranged",
-		"range": 300
+		"range": 500
 	},
 }
 
@@ -138,7 +138,7 @@ func attack(weapon):
 	if WEAPONS[weapon]["type"] == "melee":
 		anim.play(get_weapon_animation(weapon))
 		for body in bodies_in_melee_range:
-			if body.has_method("take_damage"):
+			if body.has_method("take_damage") and body.name != "Player":
 				print(body.name)
 				body.take_damage(get_weapon_damage(weapon))
 	elif WEAPONS[weapon]["type"] == "ranged":
@@ -150,6 +150,7 @@ func attack(weapon):
 			ammo.set_shooter(self)
 			ammo.set_direction(last_move_direction)
 			ammo.set_damage(WEAPONS[weapon]["damage"])
+			ammo.set_range(WEAPONS[weapon]["range"])
 			add_child(ammo)
 
 func interact_with_object():

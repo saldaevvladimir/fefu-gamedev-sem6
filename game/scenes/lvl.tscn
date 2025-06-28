@@ -1,20 +1,15 @@
-[gd_scene load_steps=5 format=3 uid="uid://deb5qv5b6dswr"]
+[gd_scene load_steps=4 format=3 uid="uid://deb5qv5b6dswr"]
 
 [ext_resource type="Script" uid="uid://b58ky0thhwbik" path="res://game/scripts/lvl.gd" id="1_k4m84"]
 [ext_resource type="TileSet" uid="uid://t1fh7aod4mne" path="res://game/data/tileset.tres" id="2_5wmg3"]
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_k4m84"]
-noise_type = 5
-seed = 7
-frequency = 0.0881
-
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_5wmg3"]
-noise = SubResource("FastNoiseLite_k4m84")
+[ext_resource type="PackedScene" uid="uid://bsxmfn7etnto5" path="res://game/scenes/player.tscn" id="3_5wmg3"]
 
 [node name="Lvl" type="Node2D"]
 script = ExtResource("1_k4m84")
-noise_height_text = SubResource("NoiseTexture2D_5wmg3")
 
 [node name="TileMap" type="TileMap" parent="."]
+scale = Vector2(4, 4)
 tile_set = ExtResource("2_5wmg3")
 format = 2
+
+[node name="Player" parent="." instance=ExtResource("3_5wmg3")]

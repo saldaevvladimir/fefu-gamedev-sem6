@@ -1,17 +1,65 @@
 extends Node2D
-@export var noise_height_text: NoiseTexture2D
-const WORLD_WIDTH = 20
-const WORLD_HEIGHT = 20
+
+@onready var tile_map = $TileMap
+@onready var player = $Player
+
+const WORLD_WIDTH = 30  # in cells
+const WORLD_HEIGHT = 20 # in cells
+
+const CELL_SIZE = 3     # 4x4 tiles in 1 cell
+const TILE_SIZE = 64    # in pixels
+
+# tileset id
+var source_id = 1
+
+# atlases for specific tiles
+var wall_atlas = Vector2i(8, 7)
+var wall_t_atlas = Vector2i(2, 0)
+var wall_r_atlas = Vector2i(0, 1)
+var wall_b_atlas = Vector2i(4, 4)
+var wall_l_atlas = Vector2i(5, 1)
+var wall_ibr_atlas = Vector2i(5, 4)
+var wall_ibl_atlas = Vector2i(0, 4)
+var wall_otl_atlas = Vector2i(0, 5)
+var wall_otr_atlas = Vector2i(5, 5)
+
+var ground_atlas = Vector2i(9, 7)
+
 
 func _ready() -> void:
 	generate_world()
 	
 func generate_world():
 	var maze = generate_maze(WORLD_WIDTH, WORLD_HEIGHT)
+	var start_pos = get_random_boundary_cell(maze)
+	var longest_path = find_longest_path(maze, start_pos)
+	var exit_pos = longest_path[-1]
+	
+	generate_map(maze)
+	player.position = Vector2(
+		TILE_SIZE * (start_pos[0] * CELL_SIZE + CELL_SIZE / 2),
+		TILE_SIZE * (start_pos[1] * CELL_SIZE + CELL_SIZE / 2)
+	)
+	print(start_pos)
+	
 	print_maze(maze)
-	var player_pos = get_random_boundary_cell(maze)
-	var longest_path = find_longest_path(maze, player_pos)
 	print_path(maze, longest_path)
+	
+	
+func generate_map(maze):
+	var w = maze[0].size()
+	var h = maze.size()
+	
+	for x in range(w):
+		for y in range(h):
+			var offset_x = x * CELL_SIZE
+			var offset_y = y * CELL_SIZE
+			
+			for i in range(CELL_SIZE):
+				for j in range(CELL_SIZE):
+					var atlas = ground_atlas if maze[y][x] else wall_atlas
+					tile_map.set_cell(0, Vector2(offset_x + i, offset_y + j), source_id, atlas)
+	
 	
 func print_path(maze, path):
 	print("\nСамый длинный путь:")

@@ -1,6 +1,5 @@
 [gd_scene load_steps=16 format=3 uid="uid://h5q1y0ns8rb7"]
 
-[ext_resource type="Script" uid="uid://ct5ccpg62arap" path="res://game/scripts/game.gd" id="1_dyrm1"]
 [ext_resource type="TileSet" uid="uid://t1fh7aod4mne" path="res://game/data/tileset.tres" id="2_nw8cr"]
 [ext_resource type="PackedScene" uid="uid://bsxmfn7etnto5" path="res://game/scenes/player.tscn" id="4_wowgv"]
 [ext_resource type="PackedScene" uid="uid://u35ngntfa64q" path="res://game/scenes/objects/Chest1.tscn" id="5_0xtou"]
@@ -16,8 +15,10 @@
 [ext_resource type="PackedScene" uid="uid://c3ocxhvi7cqky" path="res://game/scenes/objects/SideWallTorch.tscn" id="13_2nnov"]
 [ext_resource type="PackedScene" uid="uid://c2rwx0q0f0cnt" path="res://game/scenes/objects/FrontWallTorch.tscn" id="16_r514v"]
 
+[sub_resource type="GDScript" id="GDScript_avpn4"]
+
 [node name="Game" type="Node2D"]
-script = ExtResource("1_dyrm1")
+script = SubResource("GDScript_avpn4")
 
 [node name="TileMap" type="TileMap" parent="."]
 position = Vector2(-8, 0)

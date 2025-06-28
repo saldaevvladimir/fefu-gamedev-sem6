@@ -31,7 +31,7 @@ func set_direction(dir):
 	direction = dir
 	if direction.length() > 0:
 		rotation = direction.angle()
-	
+		
 func set_damage(dmg):
 	damage = dmg
 	
