@@ -1,0 +1,15 @@
+[gd_scene load_steps=2 format=3 uid="uid://cgld0dbic3fk7"]
+
+[ext_resource type="Texture2D" uid="uid://b4swb47s463d1" path="res://assets/loader_bg.jpeg" id="1_1omhq"]
+
+[node name="Loader" type="Node2D"]
+
+[node name="Background" type="Sprite2D" parent="."]
+texture = ExtResource("1_1omhq")
+
+[node name="Label" type="Label" parent="."]
+offset_left = -93.0
+offset_top = 35.0
+offset_right = 81.0
+offset_bottom = 58.0
+text = "загрузка.. подождите"

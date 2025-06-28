@@ -2,18 +2,20 @@ extends Node2D
 
 @onready var tile_map = $TileMap
 @onready var player = $Player/Player
+@onready var loader = $CanvasLayer2/Loader
+
 const finish = preload("res://game/scenes/door.tscn")
 const Peak = preload("res://game/scenes/objects/Peaks.tscn")
 const Skeleton = preload("res://game/scenes/mobs/Skeleton.tscn")
 const SimpleChest = preload("res://game/scenes/objects/Chest1.tscn")
+
 const WORLD_WIDTH = 100
 const WORLD_HEIGHT = 100
 const CELL_SIZE = 3
 const TILE_SIZE = 64
-const TRAPS_RATE = 0.1
-const MOB_RATE = 0.05
-const SIMPLE_CHEST_RATE = 0.01
-
+const TRAPS_RATE = 0.2
+const MOB_RATE = 0.4
+const SIMPLE_CHEST_RATE = 0.1
 const SPAWN_RANGE = 3 * TILE_SIZE
 const DESPAWN_RANGE = 4 * TILE_SIZE
 
@@ -32,6 +34,7 @@ var wall_itl_atlas = Vector2i(0, 0)
 var wall_itr_atlas = Vector2i(5, 0)
 var wall_otl_atlas = Vector2i(0, 5)
 var wall_otr_atlas = Vector2i(5, 5)
+
 var maze = [[]]
 var map_width = -1
 var map_height = -1
@@ -43,17 +46,11 @@ var active_traps = {}
 var active_mobs = {}
 
 func _ready() -> void:
-	generate_world()
-	print_maze()
+	loader.visible = true
 
-func set_map_size(width, height):
-	map_width = width
-	map_height = height
+	generate_world_async()
 
-func set_maze(new_maze):
-	maze = new_maze
-
-func generate_world():
+func generate_world_async():
 	set_maze(generate_maze(WORLD_WIDTH, WORLD_HEIGHT))
 	var start_pos = get_random_boundary_cell()
 	var longest_path = find_longest_path(start_pos)
@@ -72,8 +69,19 @@ func generate_world():
 	door.position = door_position
 	door.z_index = 1
 	add_child(door)
-	
+
 	print_path(longest_path)
+
+	await get_tree().create_timer(0.1).timeout
+
+	loader.visible = false
+
+func set_map_size(width, height):
+	map_width = width
+	map_height = height
+
+func set_maze(new_maze):
+	maze = new_maze
 
 func generate_map():
 	var w = map_width
@@ -313,7 +321,6 @@ func check_and_spawn_objects():
 	for pos in to_spawn_chests:
 		chest_positions.erase(pos)
 		var chest = spawn_object_at_position(pos, "chest")
-
 	var to_spawn_traps = []
 	for pos in trap_positions:
 		var distance = player_pos.distance_to(pos)
@@ -322,7 +329,6 @@ func check_and_spawn_objects():
 	for pos in to_spawn_traps:
 		trap_positions.erase(pos)
 		var trap = spawn_object_at_position(pos, "trap")
-
 	var to_spawn_mobs = []
 	for pos in mob_positions:
 		var distance = player_pos.distance_to(pos)
@@ -343,7 +349,6 @@ func check_and_despawn_objects():
 		var chest = active_chests[pos]
 		if is_instance_valid(chest):
 			despawn_object(chest, pos, "chest")
-
 	var to_despawn_traps = []
 	for pos in active_traps.keys():
 		var distance = player_pos.distance_to(pos)
@@ -353,7 +358,6 @@ func check_and_despawn_objects():
 		var trap = active_traps[pos]
 		if is_instance_valid(trap):
 			despawn_object(trap, pos, "trap")
-
 	var to_despawn_mobs = []
 	for pos in active_mobs.keys():
 		var distance = player_pos.distance_to(pos)
@@ -500,18 +504,6 @@ func generate_maze(width: int, height: int) -> Array:
 		maze[y][w - 1] = false
 
 	return maze
-
-func get_unvisited_neighbors(visited: Array, x: int, y: int, w: int, h: int) -> Array:
-	var neighbors: Array = []
-	if y > 1 and not visited[y - 2][x]:
-		neighbors.append([x, y - 2])
-	if y < h - 2 and not visited[y + 2][x]:
-		neighbors.append([x, y + 2])
-	if x > 1 and not visited[y][x - 2]:
-		neighbors.append([x - 2, y])
-	if x < w - 2 and not visited[y][x + 2]:
-		neighbors.append([x + 2, y])
-	return neighbors
 
 func find_longest_path(start_pos: Array) -> Array:
 	var w: int = maze[0].size()

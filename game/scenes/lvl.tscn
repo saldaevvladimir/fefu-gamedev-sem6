@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://deb5qv5b6dswr"]
+[gd_scene load_steps=11 format=3 uid="uid://deb5qv5b6dswr"]
 
 [ext_resource type="Script" uid="uid://b58ky0thhwbik" path="res://game/scripts/lvl.gd" id="1_k4m84"]
 [ext_resource type="TileSet" uid="uid://t1fh7aod4mne" path="res://game/data/tileset.tres" id="2_5wmg3"]
@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://6sydb8sh677x" path="res://game/scripts/ui/mystery_keys_label.gd" id="8_5sbgw"]
 [ext_resource type="Texture2D" uid="uid://cp1pjmmgu21kd" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/keys/keys_1_1.png" id="9_0431q"]
 [ext_resource type="Texture2D" uid="uid://51jsrb4a64wg" path="res://assets/2D Pixel Dungeon Asset Pack/items and trap_animation/arrow/Just_arrow.png" id="10_0431q"]
+[ext_resource type="PackedScene" uid="uid://cgld0dbic3fk7" path="res://game/scenes/ui/Loader.tscn" id="10_saks0"]
 
 [node name="Lvl" type="Node2D"]
 script = ExtResource("1_k4m84")
@@ -66,3 +67,9 @@ texture = ExtResource("10_0431q")
 [node name="Player" type="Node2D" parent="."]
 
 [node name="Player" parent="Player" instance=ExtResource("3_5wmg3")]
+
+[node name="CanvasLayer2" type="CanvasLayer" parent="."]
+
+[node name="Loader" parent="CanvasLayer2" instance=ExtResource("10_saks0")]
+position = Vector2(690, 383)
+scale = Vector2(4.82, 4.82)
