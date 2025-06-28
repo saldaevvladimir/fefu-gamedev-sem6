@@ -3,8 +3,8 @@ extends CharacterBody2D
 const Globals = preload("res://game/scripts/globals.gd")
 const HIT_OPACITY = 0.6
 const HIT_DURATION = 0.2
-var SPEED = 700
-var health = 100
+var SPEED = 600
+var health = 1000000
 @onready var anim = $AnimatedSprite2D
 @onready var melee_shape = $Area2D/CollisionShape2D
 @onready var hit_timer = $Hit_Timer

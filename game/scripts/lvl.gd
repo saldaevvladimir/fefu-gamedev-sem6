@@ -6,13 +6,13 @@ const finish = preload("res://game/scenes/door.tscn")
 const Peak = preload("res://game/scenes/objects/Peaks.tscn")
 const Skeleton = preload("res://game/scenes/mobs/Skeleton.tscn")
 const SimpleChest = preload("res://game/scenes/objects/Chest1.tscn")
-const WORLD_WIDTH = 10
-const WORLD_HEIGHT = 10
+const WORLD_WIDTH = 100
+const WORLD_HEIGHT = 100
 const CELL_SIZE = 3
 const TILE_SIZE = 64
-const TRAPS_RATE = 0.2
-const MOB_RATE = 0.2
-const SIMPLE_CHEST_RATE = 0.5
+const TRAPS_RATE = 0.1
+const MOB_RATE = 0.05
+const SIMPLE_CHEST_RATE = 0.01
 
 const SPAWN_RANGE = 3 * TILE_SIZE
 const DESPAWN_RANGE = 4 * TILE_SIZE
@@ -44,6 +44,7 @@ var active_mobs = {}
 
 func _ready() -> void:
 	generate_world()
+	print_maze()
 
 func set_map_size(width, height):
 	map_width = width
@@ -71,6 +72,8 @@ func generate_world():
 	door.position = door_position
 	door.z_index = 1
 	add_child(door)
+	
+	print_path(longest_path)
 
 func generate_map():
 	var w = map_width
@@ -400,6 +403,14 @@ func print_maze():
 			row += "▓" if not maze[y][x] else " "
 		print(row)
 
+func print_visited(visited):
+	print("\nПосещенные ячейки:")
+	for y in range(visited.size()):
+		var row = ""
+		for x in range(visited[y].size()):
+			row += "▓" if not visited[y][x] else " "
+		print(row)
+
 func get_random_boundary_cell() -> Array:
 	var h: int = maze.size()
 	if h == 0:
@@ -440,15 +451,54 @@ func generate_maze(width: int, height: int) -> Array:
 		visited.append([])
 		for x in range(w):
 			visited[y].append(false)
-	var start_x: int = 1
-	var start_y: int = 1
-	recursive_backtracker(maze, visited, start_x, start_y, w, h)
+
+	var start_x = randi() % (w - 2) + 1
+	var start_y = randi() % (h - 2) + 1
+	start_x = 1
+	start_y = 1
+	visited[start_y][start_x] = true
+	maze[start_y][start_x] = true
+
+	var walls = []
+	if start_x > 1 and not visited[start_y][start_x - 2]:
+		walls.append([start_x - 1, start_y, start_x - 2, start_y])
+	if start_x < w - 2 and not visited[start_y][start_x + 2]:
+		walls.append([start_x + 1, start_y, start_x + 2, start_y])
+	if start_y > 1 and not visited[start_y - 2][start_x]:
+		walls.append([start_x, start_y - 1, start_x, start_y - 2])
+	if start_y < h - 2 and not visited[start_y + 2][start_x]:
+		walls.append([start_x, start_y + 1, start_x, start_y + 2])
+
+	while walls.size() > 0:
+		var wall_index = randi() % walls.size()
+		var wall = walls[wall_index]
+		var x = wall[0]
+		var y = wall[1]
+		var nx = wall[2]
+		var ny = wall[3]
+
+		if not visited[ny][nx]:
+			maze[y][x] = true
+			visited[ny][nx] = true
+			maze[ny][nx] = true
+
+			if nx > 1 and not visited[ny][nx - 2]:
+				walls.append([nx - 1, ny, nx - 2, ny])
+			if nx < w - 2 and not visited[ny][nx + 2]:
+				walls.append([nx + 1, ny, nx + 2, ny])
+			if ny > 1 and not visited[ny - 2][nx]:
+				walls.append([nx, ny - 1, nx, ny - 2])
+			if ny < h - 2 and not visited[ny + 2][nx]:
+				walls.append([nx, ny + 1, nx, ny + 2])
+		walls.remove_at(wall_index)
+
 	for x in range(w):
 		maze[0][x] = false
 		maze[h - 1][x] = false
 	for y in range(h):
 		maze[y][0] = false
 		maze[y][w - 1] = false
+
 	return maze
 
 func get_unvisited_neighbors(visited: Array, x: int, y: int, w: int, h: int) -> Array:
@@ -462,20 +512,6 @@ func get_unvisited_neighbors(visited: Array, x: int, y: int, w: int, h: int) -> 
 	if x < w - 2 and not visited[y][x + 2]:
 		neighbors.append([x + 2, y])
 	return neighbors
-
-func recursive_backtracker(maze: Array, visited: Array, x: int, y: int, w: int, h: int):
-	visited[y][x] = true
-	maze[y][x] = true
-	var neighbors: Array = get_unvisited_neighbors(visited, x, y, w, h)
-	while not neighbors.is_empty():
-		var neighbor: Array = neighbors[randi() % neighbors.size()]
-		var nx: int = neighbor[0]
-		var ny: int = neighbor[1]
-		var wall_x = x + (nx - x) / 2
-		var wall_y = y + (ny - y) / 2
-		maze[wall_y][wall_x] = true
-		recursive_backtracker(maze, visited, nx, ny, w, h)
-		neighbors = get_unvisited_neighbors(visited, x, y, w, h)
 
 func find_longest_path(start_pos: Array) -> Array:
 	var w: int = maze[0].size()
@@ -524,26 +560,26 @@ func find_path(start_pos: Array, end_pos: Array) -> Array:
 		visited.append([])
 		for x in range(w):
 			visited[y].append(false)
+	var stack: Array = []
 	var current_path: Array = []
-	var path = dfs(visited, start_pos[0], start_pos[1], end_pos[0], end_pos[1], current_path)
-	return path
-
-func dfs(visited: Array, x: int, y: int, end_x: int, end_y: int, current_path: Array) -> Array:
-	if x == end_x and y == end_y:
-		var result_path = current_path.duplicate()
-		result_path.append([x, y])
-		return result_path
-	visited[y][x] = true
-	current_path.append([x, y])
-	var directions = [[0, -1], [0, 1], [-1, 0], [1, 0]]
-	for dir in directions:
-		var nx = x + dir[0]
-		var ny = y + dir[1]
-		if nx >= 0 and nx < maze[0].size() and ny >= 0 and ny < maze.size():
-			if maze[ny][nx] and not visited[ny][nx]:
-				var result_path = dfs(visited, nx, ny, end_x, end_y, current_path)
-				if result_path.size() > 0:
-					return result_path
-	current_path.pop_back()
-	visited[y][x] = false
+	stack.append([start_pos, current_path])
+	while stack.size() > 0:
+		var current = stack.pop_back()
+		var pos = current[0]
+		current_path = current[1]
+		var x: int = pos[0]
+		var y: int = pos[1]
+		if x == end_pos[0] and y == end_pos[1]:
+			current_path.append([x, y])
+			return current_path
+		if not visited[y][x]:
+			visited[y][x] = true
+			current_path.append([x, y])
+			var directions = [[0, -1], [0, 1], [-1, 0], [1, 0]]
+			for dir in directions:
+				var nx = x + dir[0]
+				var ny = y + dir[1]
+				if nx >= 0 and nx < w and ny >= 0 and ny < h:
+					if maze[ny][nx] and not visited[ny][nx]:
+						stack.append([[nx, ny], current_path.duplicate()])
 	return []
