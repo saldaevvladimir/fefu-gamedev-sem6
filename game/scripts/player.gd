@@ -1,5 +1,8 @@
 extends CharacterBody2D
 
+const HIT_OPACITY = 0.6
+const HIT_DURATION = 0.2
+
 var SPEED = 250
 var health = 100
 var arrows_count = 0
@@ -8,6 +11,7 @@ var mystery_keys_count = 0
 
 @onready var anim = $AnimatedSprite2D
 @onready var melee_shape = $Area2D/CollisionShape2D
+@onready var hit_timer = $Hit_Timer
 
 var is_attacking = false
 var active_weapon = null
@@ -32,6 +36,21 @@ const WEAPONS = {
 		"type": "ranged"
 	},
 }
+
+func _on_ready() -> void:
+	var shader = Shader.new()
+	shader.code = """
+	shader_type canvas_item;
+	uniform float hit_opacity : hint_range(0.0, 1.0);
+	void fragment() {
+		COLOR.rgb = mix(COLOR.rgb, vec3(1.0, 1.0, 1.0), hit_opacity);
+	}
+	"""
+	var material = ShaderMaterial.new()
+	material.shader = shader
+	anim.material = material
+	hit_timer.wait_time = HIT_DURATION
+	pass
 
 func _physics_process(delta):
 	if is_attacking or !is_alive():
@@ -110,9 +129,10 @@ func take_damage(damage: int = 0):
 		return
 		
 	health -= damage
-	# тут надо добавить установку hit_opacity для шейдера AnimatedSprite2d (0.6)
-	# либо какую-то нормальную реализацию для видимости получения урона игроком
-	# в первом случае спрайт должен почти белым цветом окраситься на скажем 0.2 секунды
+	
+	anim.material.set_shader_parameter("hit_opacity", HIT_OPACITY)
+	hit_timer.start()
+	
 	if !is_alive():
 		death()
 	print('player health: ', health)
@@ -125,3 +145,5 @@ func death():
 func on_death():
 	print("player dead")
 	
+func _on_hit_timer_timeout() -> void:
+	anim.material.set_shader_parameter("hit_opacity", 0.0)
